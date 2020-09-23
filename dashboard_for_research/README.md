@@ -90,9 +90,9 @@ sudo service g-tracker restart
 ```
 
 ## Update `aliases.txt` file
-The file `aliases.txt` exists to help deal with cases where different news outlets publish a person's name using a variety of aliases. For example, in quoting the British monarch Queen Elizabeth II, certain outlets might use the name "Queen Elizabeth", while others reference her official name "Queen Elizabeth II". Other situations where this occurs often include women and their maiden names, for example, "Sarah Huckabee Sanders". Certain organizations publish her name using just her post-marital name , "Sarah Sander", while others refer to her combined birth/marital name, "Sarah Huckabee Sanders".
+The file `aliases.txt` exists to help deal with cases where different news outlets publish a person's name using a variety of aliases. For example, in quoting the British monarch Queen Elizabeth II, certain outlets might use the name "Queen Elizabeth", while others reference her official name "Queen Elizabeth II". Other situations where this occurs often include women and their maiden names, for example, "Sarah Huckabee Sanders". Certain organizations publish her name using just her post-marital name , "Sarah Sanders", while others refer to her combined birth/marital name, "Sarah Huckabee Sanders".
 
-We address this naming issue through an alias text file, that merges instances of aliases to a suitably chosen 'primary' name, i.e., the name we want to refer to the person by on our dashboard. The format of the alias file is as follows:
+We address this naming inconsistency through an alias text file, that merges instances of aliases to a suitably chosen 'primary' name, i.e., the name we want to refer to the person by on our dashboard. The format of the alias file is as follows:
 
 ```
 Primary name, alias1, alias 2, ...
@@ -101,12 +101,12 @@ Queen Elizabeth II, Queen Elizabeth
 Sarah Huckabee Sanders, Sarah Sanders
 ```
 
-The first name in each line represents the primary name, and the remaining names (**separated by commas**) are the various aliases that different outlets use for that person. We can extend this list as much as required, and the corresponding dashboard app self-updates to aggregate the quote counts and merge instances of the name to produce more accurate statistics.
+The first name in each line represents the primary name, and the remaining names (**separated by commas**) are the various aliases that different outlets use for that person. We can extend this list as much as required, and the corresponding dashboard app self-updates to aggregate the quote counts, merging instances of each alias to produce more accurate statistics.
 
 ---
 
 ## Troubleshooting
-Deployment of this application is slighly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
+Deployment of this application is slightly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
 
 Due to an [issue with circular imports](https://dash.plotly.com/urls) when defining multi-page applications in Plotly Dash, the Flask server object must be created in a separate file, which we call  `server.py`:
 
