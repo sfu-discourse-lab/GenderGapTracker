@@ -1,0 +1,15 @@
+-f /cvmfs/soft.computecanada.ca/custom/python/wheelhouse/avx512
+-f /cvmfs/soft.computecanada.ca/custom/python/wheelhouse/avx2
+-f /cvmfs/soft.computecanada.ca/custom/python/wheelhouse/generic
+bcrypt==3.1.4
+cffi==1.11.5
+cryptography==2.9
+enum34==1.1.10
+ipaddress==1.0.23
+paramiko==2.7.1
+py4j==0.10.7
+pycparser==2.20
+PyNaCl==1.2.1
+pyspark==2.4.4
+six==1.14.0
+sshtunnel==0.1.3
