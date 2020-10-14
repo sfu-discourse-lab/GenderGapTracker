@@ -1,5 +1,7 @@
 # Run NLP Pipeline
 
+This section contains the code for quote extraction and named entity gender annotation for the Gender Gap Tracker.
+
 ## Set up environment
 Install Python 3.6+ and follow the below instructions to prepare the python environment.
 
@@ -42,9 +44,9 @@ config = {
     },
     'NLP': {
         'MAX_BODY_LENGTH': 20000,
-        'AUTHOR_BLOCKLIST': '/g-tracker/WomenInMedia/NLP/main/rules/author_blocklist.txt',
-        'NAME_PATTERNS': '/g-tracker/WomenInMedia/NLP/main/rules/name_patterns.jsonl',
-        'QUOTE_VERBS': '/g-tracker/WomenInMedia/NLP/main/rules/quote_verb_list.txt'
+        'AUTHOR_BLOCKLIST': '<abs_path>/rules/author_blocklist.txt',
+        'NAME_PATTERNS': '<abs_path>/rules/name_patterns.jsonl',
+        'QUOTE_VERBS': '<abs_path>/rules/quote_verb_list.txt'
     }
 }
 ```
@@ -52,7 +54,7 @@ config = {
 The below JSON fields are used:
 
 #### MongoDB arguments
-Contains the host name, port, username and password for logging into the MongoDB production server. 
+Contains the host name, port, username and password for logging into the MongoDB production server.
 
 #### Gender services
 Contains the option flags for the 'Genderize' and 'Gender-API' external services. Note that from V4.0 onwards, we do not use Genderize anymore (our subscription has expired), so it is disabled. Only the Gender-API subscription is still active and is used as a fallback when we encounter names that aren't in our cache. The gender recognition service is hosted as a Flask service accessible via 'localhost' on port 5000.
