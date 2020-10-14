@@ -16,7 +16,7 @@ jsonschema==2.6.0
 MarkupSafe==1.1.1
 murmurhash==1.0.2
 neuralcoref==4.0
-nltk==3.4.1
+nltk==3.4.5
 pandas==1.0.3
 plac==0.9.6
 preshed==2.0.1
