@@ -35,7 +35,7 @@ remove_items = [
     "``", "--", "―", "”", "“", "*", "="
 ]
 # Useless bigrams that we don't want to display in our plots
-useless_bigrams = ['photo_open', 'page_send']
+useless_bigrams = ['photo_open', 'page_send', 'more_read']
 
 
 def load_lemma(lemma_file):

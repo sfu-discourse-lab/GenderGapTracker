@@ -1,6 +1,19 @@
 # Scraping
 This section contains the code we used for scraping news article content from various Canadian outlets. The data itself was downloaded from public and subscription websites of newspapers, under the ‘fair dealing’ provision in Canada’s Copyright Act.  This means that the data can be made available (upon signing a license agreement) *only* for private study and/or research purposes, and **not** for commercial purposes.
 
+## Installation
+We use the following tools for data scraping and storage.
+
+
+* MongoDB: Installation instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
+* Python 3.6+: Make sure that `gcc`, `build-essential` and `python36u-devel` packages are also installed on the system.
+* Newspaper3k: We use the [newspaper library](https://github.com/codelucas/newspaper) to help in the process of collecting data. However, we customized this library for our own purposes, hosted at: https://github.com/aleaugustoplus/newspaper
+  * Clone this repo to the root directory of the scraper code
+  * Install the dependencies for the customized newspaper library using the requirements.txt file as shown [in the repo](https://github.com/aleaugustoplus/newspaper/blob/master/requirements.txt).
+  * ```pip install -r requirements.txt```
+
+
+
 ## News Sources
 We currently scrape news articles from 13 different organizations' websites, in both French and English.
 
