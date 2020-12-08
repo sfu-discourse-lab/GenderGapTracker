@@ -29,20 +29,26 @@
 {"label": "ORG", "pattern": "Nesbitt Burns"}
 {"label": "ORG", "pattern": "Royal LePage"}
 {"label": "ORG", "pattern": "Dickinson Wright"}
-{"label": "ORG", "pattern": "B'nai Brith"}
 {"label": "ORG", "pattern": "Taquan Air"}
 {"label": "ORG", "pattern": "Salmar Theatres"}
 {"label": "ORG", "pattern": [{"LOWER": "ctvnews.ca"}]}
 {"label": "ORG", "pattern": [{"LOWER": "ctvnews"}]}
+{"label": "ORG", "pattern": [{"LOWER": "windsor"}, {"LOWER": "mayor"}]}
+{"label": "ORG", "pattern": [{"LOWER": "ryan"}, {"LOWER": "remiorz"}]}
+{"label": "ORG", "pattern": [{"LOWER": "the"}, {"LOWER": "star"}]}
+{"label": "ORG", "pattern": [{"LOWER": "rcmp"}, {"LOWER": "sgt"}]}
 {"label": "FAC", "pattern": "Bergdorf Goodman"}
 {"label": "FAC", "pattern": "Yuk Yuk"}
-{"label": "NORP", "pattern": [{"LOWER": "pro-brexit"}]}
-{"label": "NORP", "pattern": [{"LOWER": "pro-EU"}]}
-{"label": "NORP", "pattern": [{"LOWER": "eu"}, {"LOWER": "brexit"}]}
-{"label": "NORP", "pattern": "Wet'suwet'en"}
-{"label": "NORP", "pattern": "Mi'kmaw"}
+{"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
+{"label": "ORG", "pattern": [{"LOWER": "anti"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
+{"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "-"}, {"LOWER": "eu"}]}
+{"label": "ORG", "pattern": [{"LOWER": "eu"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
+{"label": "NORP", "pattern": [{"LOWER": "wet'suwet'en"}]}
+{"label": "NORP", "pattern": [{"LOWER": "mi'kmaw"}]}
+{"label": "NORP", "pattern": [{"LOWER": "b'nai brith"}]}
 {"label": "NORP", "pattern": "Vuntut Gwitchin"}
 {"label": "NORP", "pattern": "Wahbung Abinoonjiiag"}
+{"label": "NORP", "pattern": "Manitoba Keewatinowi Okimakanak"}
 {"label": "NORP", "pattern": "Grassy Narrows"}
 {"label": "NORP", "pattern": "Nova Scotians"}
 {"label": "NORP", "pattern": "New Brunswickers"}
@@ -52,6 +58,7 @@
 {"label": "EVENT", "pattern": "Stanley Cup"}
 {"label": "EVENT", "pattern": [{"LOWER": "hurricane"}, {"TEXT": {"REGEX": "[A-Za-z0-9]+"}}]}
 {"label": "INVALID", "pattern": [{"LOWER": "article"}, {"LOWER": "continued"}, {"LOWER": "below"}]}
+{"label": "PERSON", "pattern": "Theresa May"}
 {"label": "PERSON", "pattern": "Penny Smoke"}
 {"label": "PERSON", "pattern": "Hope Yen"}
 {"label": "PERSON", "pattern": "Terray Sylvester"}

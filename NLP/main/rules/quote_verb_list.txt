@@ -224,7 +224,7 @@ say
 saying
 says
 speak
-speaking
+speaks
 speaking
 spoke
 spoken

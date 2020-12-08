@@ -250,14 +250,6 @@ def get_genders(people):
     return data
 
 
-def tidy_text(txt):
-    """Clean up extraneous symbols and punctuation from a quote's text"""
-    txt = txt.replace('.\n .\n ', '')
-    txt = txt.replace('. .\n', '.')
-    txt = txt.replace('\n', '')
-    return txt
-
-
 def format_names(name_list):
     """Format output string from extracted sources/mentions"""
     formatted = f"{(', ').join(name_list)}" if name_list else ""
@@ -272,7 +264,7 @@ def collect_quotes(quotes):
         # the conditions are relaxed and we accept the quote with a blank speaker name
         if q.get('named_entity_type') == 'PERSON' or q.get('quote_type') == 'Heuristic':
             speaker = q.get('named_entity', "")
-            quote = tidy_text(q.get('quote', ""))
+            quote = preprocess_text(q.get('quote', ""))
             collection.append({'speaker': speaker, 'quote': quote})
     return collection
 
@@ -294,14 +286,15 @@ def people_by_gender(name_dict, category):
 
 def extract_quotes_and_entities(sample_text):
     """Convert raw text to a spaCy doc object and return its named entities and quotes"""
-    doc = spacy_lang(preprocess_text(sample_text))
+    text = preprocess_text(str(sample_text))
+    doc = spacy_lang(text)
     quotes = extract_quotes(doc_id="temp000", doc=doc, write_tree=False)
     unified_nes = merge_nes(doc)
     named_entities = remove_invalid_nes(unified_nes)
     # Get list of people and sources, along with a combined list of all quotes
     people = list(named_entities.keys())
     # Obtain gender of speakers from condensed coreference clusters
-    nes_quotes, quotes_no_nes, all_quotes = quote_assign(named_entities, quotes, doc)
+    _, _, all_quotes = quote_assign(named_entities, quotes, doc)
     quotes_and_sources = collect_quotes(all_quotes)
     # sort alphabetically based on speaker name
     quotes_and_sources = sorted(quotes_and_sources, key=lambda x: x['speaker'], reverse=True)

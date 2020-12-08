@@ -1,12 +1,11 @@
 import argparse
-import json
 import logging
 import re
 import traceback
 import urllib
 from bson import ObjectId
 from datetime import datetime, timedelta
-from urllib.request import urlopen
+import requests
 from multiprocessing import Pool, cpu_count
 
 import neuralcoref
@@ -315,22 +314,31 @@ def get_pronoun_based_gender(unified_nes):
     return result_dict
 
 
-def get_genders(people):
-    some_url = GENDER_RECOGNITION_SERVICE + '/get-genders?people=' + urllib.parse.quote(','.join(people))
-    response = urlopen(some_url)
-    data = json.load(response)
-
+def get_genders(session, names):
+    parsed_names = urllib.parse.quote(','.join(names))
+    url = "{0}/get-genders?people={1}".format(GENDER_RECOGNITION_SERVICE, parsed_names)
+    if parsed_names:
+        response = session.get(url)
+        if response:
+            data = response.json()
+        else:
+            code = response.status_code
+            app_logger.warning("Failed to retrieve valid JSON: status code {}".format(code))
+            data = {}
+    else:
+        data = {}
     return data
 
 
-def update_existing_collection(collection, doc):
+def update_existing_collection(collection, doc, session):
     """If user does not specify the `writecol` argument, write entity-gender results to existing collection."""
     doc_id = str(doc['_id'])
     text = doc['body']
+
     # Process authors
     cleaner = utils.CleanAuthors(nlp)
     authors = cleaner.clean(doc['authors'], blocklist)
-    author_genders = get_genders(authors)
+    author_genders = get_genders(session, authors)
 
     authors_female = []
     authors_male = []
@@ -342,7 +350,8 @@ def update_existing_collection(collection, doc):
         elif gender == 'male':
             authors_male.append(person)
         else:
-            authors_unknown.append(person)
+            if person:
+                authors_unknown.append(person)
 
     quotes = doc['quotes']
     text_preprocessed = utils.preprocess_text(text)
@@ -352,7 +361,8 @@ def update_existing_collection(collection, doc):
 
     # Process people
     people = list(final_nes.keys())
-    people_genders = get_genders(people)
+    people = list(filter(None, people))  # Make sure no empty values are sent for gender prediction
+    people_genders = get_genders(session, people)
 
     people_female = []
     people_male = []
@@ -363,7 +373,8 @@ def update_existing_collection(collection, doc):
         elif gender == 'male':
             people_male.append(person)
         else:
-            people_unknown.append(person)
+            if person:
+                people_unknown.append(person)
 
     # Expert fields are filled base on gender of speakers in the quotes
     sources_female = []
@@ -380,11 +391,12 @@ def update_existing_collection(collection, doc):
         elif gender == 'male':
             sources_male.append(speaker)
         else:
-            sources_unknown.append(speaker)
+            if speaker:
+                sources_unknown.append(speaker)
 
     voices_female, voices_male, voices_unknowns = measure_voices(people_genders, nes_quotes, quotes_no_nes)
 
-    article_type = utils.get_article_type(doc['url'])
+    article_type = utils.get_article_type(doc.get('url', ""))
 
     collection.update(
         {'_id': ObjectId(doc_id)},
@@ -423,14 +435,14 @@ def update_existing_collection(collection, doc):
             'lastModified': datetime.now()}})
 
 
-def add_new_collection(collection, doc):
+def add_new_collection(collection, doc, session):
     """If user specifies the `writecol` argument, write entity-gender results to a new collection."""
     doc_id = str(doc['_id'])
     text = doc['body']
     # Process authors
     cleaner = utils.CleanAuthors(nlp)
     authors = cleaner.clean(doc['authors'], blocklist)
-    author_genders = get_genders(authors)
+    author_genders = get_genders(session, authors)
 
     authors_female = []
     authors_male = []
@@ -442,7 +454,8 @@ def add_new_collection(collection, doc):
         elif gender == 'male':
             authors_male.append(person)
         else:
-            authors_unknown.append(person)
+            if person:
+                authors_unknown.append(person)
 
     quotes = doc['quotes']
     text_preprocessed = utils.preprocess_text(text)
@@ -452,7 +465,8 @@ def add_new_collection(collection, doc):
 
     # Process people
     people = list(final_nes.keys())
-    people_genders = get_genders(people)
+    people = list(filter(None, people))  # Make sure no empty values are sent for gender prediction
+    people_genders = get_genders(session, people)
 
     people_female = []
     people_male = []
@@ -463,7 +477,8 @@ def add_new_collection(collection, doc):
         elif gender == 'male':
             people_male.append(person)
         else:
-            people_unknown.append(person)
+            if person:
+                people_unknown.append(person)
 
     # Expert fields are filled base on gender of speakers in the quotes
     sources_female = []
@@ -480,11 +495,12 @@ def add_new_collection(collection, doc):
         elif gender == 'male':
             sources_male.append(speaker)
         else:
-            sources_unknown.append(speaker)
+            if speaker:
+                sources_unknown.append(speaker)
 
     voices_female, voices_male, voices_unknowns = measure_voices(people_genders, nes_quotes, quotes_no_nes)
 
-    article_type = utils.get_article_type(doc['url'])
+    article_type = utils.get_article_type(doc.get('url', ""))
 
     collection.insert_one(
         {
@@ -525,7 +541,7 @@ def add_new_collection(collection, doc):
     )
 
 
-def update_db(read_collection, write_collection, doc):
+def update_db(read_collection, write_collection, doc, session):
     """Write entity-gender annotation results to a new collection OR update the existing collection.
     """
     doc_id = str(doc['_id'])
@@ -572,9 +588,9 @@ def update_db(read_collection, write_collection, doc):
                     'lastModified': datetime.now()}})
         else:
             if WRITE_COL:
-                add_new_collection(write_collection, doc)
+                add_new_collection(write_collection, doc, session)
             else:
-                update_existing_collection(read_collection, doc)
+                update_existing_collection(read_collection, doc, session)
 
     except:
         app_logger.exception("message")
@@ -592,9 +608,11 @@ def parse_chunks(chunk):
     db_client = utils.init_client(MONGO_ARGS)
     read_collection = db_client[DB_NAME][READ_COL]
     write_collection = db_client[DB_NAME][WRITE_COL] if WRITE_COL else None
+    # Create requests session object for more persistent HTTP connections
+    session = requests.Session()
     for idx in chunk:
         doc = read_collection.find_one({'_id': idx}, no_cursor_timeout=True)
-        update_db(read_collection, write_collection, doc)
+        update_db(read_collection, write_collection, doc, session)
 
 
 def run_pool(poolsize, chunksize):
@@ -633,7 +651,7 @@ if __name__ == '__main__':
     parser.add_argument("--outlets", type=str, help="Comma-separated list of news outlets to consider in query scope")
     parser.add_argument('--ids', type=str, help="Comma-separated list of document ids to process. \
                                                  By default, all documents in the collection are processed.")
-    parser.add_argument("--poolsize", type=int, default=cpu_count(), help="Size of the concurrent process pool for the given task")
+    parser.add_argument("--poolsize", type=int, default=cpu_count() + 1, help="Size of the concurrent process pool for the given task")
     parser.add_argument("--chunksize", type=int, default=20, help="Number of articles IDs per chunk being processed concurrently")
 
     args = vars(parser.parse_args())
@@ -701,3 +719,4 @@ if __name__ == '__main__':
 
     run_pool(poolsize, chunksize)
     app_logger.info('Finished processing entities.')
+    
