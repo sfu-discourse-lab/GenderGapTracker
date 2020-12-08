@@ -18,9 +18,9 @@ gender_logger = utils.create_logger('gender_recognition', log_dir='logs', logger
 db_client = utils.init_client(config['MONGO_ARGS'])
 
 viaf_cache_col = db_client['genderCache']['VIAF']
-genderapi_cache_col = db_client['genderCache']['genderAPI']
-genderize_cache_col = db_client['genderCache']['genderize']
-firstname_cache_col = db_client['genderCache']['firstNames']
+genderapi_cache_col = db_client['genderCache']['genderAPICleaned']
+genderize_cache_col = db_client['genderCache']['genderizeCleaned']
+firstname_cache_col = db_client['genderCache']['firstNamesCleaned']
 manual_cache_col = db_client['genderCache']['manual']
 
 GENDERIZE_ENABLED = config['GENDER_RECOGNITION']['GENDERIZE_ENABLED']
@@ -39,7 +39,7 @@ def get_genders():
 
     people_genders = {}
     for person in people:
-        gender, gender_source, is_cached = get_gender(person, disable_cache, disable_service)
+        gender, _, _ = get_gender(person, disable_cache, disable_service)
         people_genders[person] = gender
     json_res = jsonify(people_genders)
     return json_res
@@ -50,7 +50,6 @@ def get_gender_service():
     name = request.args.get('name', type=str)
     if name is None:
         raise ValueError('name is not provided.')
-        return jsonify({'gender': 'unknown', 'gender_source': 'ERROR', 'cached': False, 'successful': False})
 
     print(utils.extract_first_name(name))
 
@@ -198,7 +197,7 @@ def get_gender_from_cache(full_name):
 
         # ===== Checking GenderAPI cache on first name
         service_name = 'GenderAPI_FirstName'
-        existing_gender = genderapi_cache_col.find_one({'$or': [{'name': first_name}, {'first_name': first_name}]})
+        existing_gender = genderapi_cache_col.find_one({'name': first_name})
 
         if existing_gender is None:
             gender_logger.debug(log_stmt_format.format(service_name, first_name, full_name, 'Name Not Found'))
@@ -235,13 +234,10 @@ def get_gender_from_cache(full_name):
     else:
         gender_logger.warning('Can not extract first name from "{0}". Skipping First Name Services.'.format(full_name))
 
-    # ========== Checking full name caches ==========
-
     return 'unknown', 'Hardcode', ignore_list
 
 
 # The priorities to get gender from services:
-
 # 1. Genderize
 # 2. GenderAPI_FullName: GenderAPI based on split API (full name)
 
@@ -321,12 +317,9 @@ def get_viaf_gender(name, maximumRecords=1000):
                     unknown_count = unknown_count + 1
 
             if female_count > male_count:
-                #         if female > male:
                 final_gender = 'female'
             elif male_count > female_count:
-                #         elif male > female:
                 final_gender = 'male'
-            #     End of If
 
             gender_logger.debug(
                 'VIAF service call result for "{0}": "{1}"\t(female:{2}   male:{3}   unknown:{4}     total:{5})'.format(
@@ -357,8 +350,10 @@ def get_genderize_gender(full_name):
     else:
         try:
             gender_payload = {"name": first_name}
+            # Create a requests session
+            session = requests.Session()
 
-            gender_return = requests.get("https://api.genderize.io/?", params=gender_payload)
+            gender_return = session.get("https://api.genderize.io/?", params=gender_payload)
             cache_obj = json.loads(gender_return.text)
             gender = cache_obj['gender']
             gender_logger.debug(
@@ -379,9 +374,11 @@ def get_genderize_gender(full_name):
 def get_genderapi_gender(full_name):
     try:
         full_name = utils.clean_ne(full_name).lower()
+        # Create a requests session
+        session = requests.Session()
         url = "https://gender-api.com/get?split={}&key={}".format(quote(full_name), GENDERAPI_TOKEN)
-        response = urlopen(url)
-        cache_obj = json.loads(response.read().decode('utf-8'))
+        response = session.get(url)
+        cache_obj = response.json()
         gender = cache_obj["gender"]
         gender_logger.debug('GenderAPI service call result for "{0}": "{1}"'.format(full_name, gender))
 
