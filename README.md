@@ -1,4 +1,4 @@
-__Status: V5.1__ (Code provided as-is; only sporadic updates expected).
+__Status: V5.3__ (Code provided as-is; only sporadic updates expected).
 
 # The Gender Gap Tracker
 
