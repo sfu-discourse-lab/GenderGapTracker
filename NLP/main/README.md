@@ -215,25 +215,25 @@ The example command shown overwrites all entity gender annotator fields in the `
 Following this step, the entire database is updated and the aggregator script that processes daily data can then be run to update results on the live dashboard.
 
 ### 4. Rerun daily aggregator for Informed Opinions dashboard
-The daily aggregator is a script (`GenderGapTracker/scraper/tools.py`) that automatically runs once a day, aggregating the number of female/male sources for display on the [public dashboard](https://gendergaptracker.informedopinions.org/). To see the latest numbers from the previous step, this script can be manually run as follows.
+The daily aggregator is a script (`GenderGapTracker/scraping_and_aggregation/tools.py`) that automatically runs once a day, aggregating the number of female/male sources for display on the [public dashboard](https://gendergaptracker.informedopinions.org/). To see the latest numbers from the previous step, this script can be manually run as follows.
 
 ```sh
-cd GenderGapTracker/scraper
-python3 GenderGapTracker/scraper/tools.py "generate_daily_collection"
+cd GenderGapTracker/scraping_and_aggregation
+python3 tools.py "generate_daily_collection"
 ```
 The script takes about half an hour (as of September 2020) to run, following which the updated stats can be seen on the public dashboard.
 
 ### 5. Rerun monthly top sources scripts for research dashboard
 Next, we need to update the precomputed stats for the research dashboard's top-quoted sources and monthly trends apps. The paths to the scripts that compute values for these apps are shown below:
 
-1. `GenderGapTracker/scraper_and_statistics/monthly_aggregate/monthly_top_sources.py`
-1. `GenderGapTracker/scraper_and_statistics/monthly_aggregate/monthly_top_sources_timeseries.py`
+* `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources.py`
+* `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources_timeseries.py`
 
 Script #1 calculates the top 15 sources for each month for either gender, used for displaying the top-quoted sources lollipop chart. Script #2 aggregates the total number of quotes for all sources (of either gender) that appeared in the top 50 sources for any given month.
 
 #### Rerun script #1:
 ```sh
-cd GenderGapTracker/scraper_and_statistics/monthly_aggregate
+cd GenderGapTracker/scraping_and_aggregation/monthly_aggregate
 python3 monthly_top_sources.py --begin_date 2020-08-01 --end_date 2020-08-31
 ```
 Alternatively, a shell script is written that executes the script for each month separately. A snippet is shown below.

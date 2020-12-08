@@ -1,4 +1,4 @@
-# Scraping and aggregate statistics
+# Scraping and aggregation
 This section contains the code we used for scraping news article content from various Canadian outlets, as well as the code we use to extract aggregate statistics from the database. The news data processed in our NLP pipeline was downloaded from public and subscription websites of newspapers, under the ‘fair dealing’ provision in Canada’s Copyright Act. This means that the data can be made available (upon signing a license agreement) *only* for private study and/or research purposes, and **not** for commercial purposes.
 
 ## 1. Scrapers
@@ -44,7 +44,7 @@ python3.6 WomenInMedia/scraper/mediaCollectors.py "Huffington Post"
 python3.6 WomenInMedia/scraper/mediaCollectors.py "Journal De Montreal"
 ```
 
-See the full list of valid (case-sensitive) outlet names in [`WomenInMedia/scraper/mediaCollectors.py`](https://github.com/maitetaboada/WomenInMedia/blob/master/scraper/mediaCollectors.py).
+See the full list of valid (case-sensitive) outlet names in [`mediaCollectors.py`](https://github.com/maitetaboada/WomenInMedia/blob/master/scraper/mediaCollectors.py).
 
 
 ### `config.py` parameters

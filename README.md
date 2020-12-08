@@ -12,7 +12,7 @@ The Gender Gap Tracker is a collaboration between [Informed Opinions](https://in
 
 * `dashboard_for_research`: [Research dashboard and apps](https://gendergaptracker.research.sfu.ca/) that allow us to explore the GGT data in more detail.
 * `NLP`: NLP modules for performing quote extraction and entity gender annotation on the news articles.
-* `scraper`: Modules for scraping news articles from various Canadian news organizations' websites.
+* `scraping_and_aggregation`: Modules for scraping news articles from various Canadian news organizations' websites, and the code we use to extract aggregate statistics from the database.
 
 
 ## Contributors
