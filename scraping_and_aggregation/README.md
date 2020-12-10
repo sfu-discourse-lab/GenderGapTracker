@@ -37,14 +37,14 @@ We currently scrape news articles from 13 different organizations' websites, in 
 
 Each outlet's news content can be retrieved from their RSS feeds by running the required media collectors.
 
-##@ Example of usage for individual scrapers
+### Example of usage for individual scrapers
 
 ```sh
 python3.6 WomenInMedia/scraper/mediaCollectors.py "Huffington Post"
 python3.6 WomenInMedia/scraper/mediaCollectors.py "Journal De Montreal"
 ```
 
-See the full list of valid (case-sensitive) outlet names in [`mediaCollectors.py`](https://github.com/maitetaboada/WomenInMedia/blob/master/scraper/mediaCollectors.py).
+See the full list of valid (case-sensitive) outlet names in the file `mediaCollectors.py`.
 
 
 ### `config.py` parameters
@@ -68,8 +68,8 @@ COLLECTION_NAME = 'media'
 ## 2. Aggregate statistics
 We also provide code showing how we calculate aggregate statistics for the results shown in the paper, as well as for the numbers shown on our dashboards. These statistics are calculated on a daily or monthly basis, depending on the situation.
 
-### Daily stats
-We pre-compute daily statistics on the total number of male, female and unknown gender sources and people mentioned, from each outlet. These are written to a separate collection with the appropriate indexes, so that they can be efficiently retrieved for display on [our live dashboard](https://gendergaptracker.informedopinions.org/).
+### Daily aggregate statistics
+We pre-compute daily aggregated statistics for the total number of male, female and unknown gender sources and people mentioned, from each outlet. These are written to a separate collection with the appropriate indexes, so that they can be efficiently retrieved for display on [our live dashboard](https://gendergaptracker.informedopinions.org/).
 
 To generate daily statistics on the most recently processed data, run the command below:
 
@@ -77,30 +77,34 @@ To generate daily statistics on the most recently processed data, run the comman
 python3 WomenInMedia/scraper/tools.py "generate_daily_collection"
 ```
 
-### Monthly stats
+### Monthly aggregate statistics
 For [our research dashboard](gendergaptracker.research.sfu.ca/), we aggregate our results on a monthly basis. This is primarily for us to study trends in our topic models each month, as well as to analyze the top quoted men and women over time.
 
-Calculate the top 15 quoted men and women for a particular month as follows:
+Calculate the top 50 quoted men and women for a particular month by specifying the month and year as follows:
 
 ```sh
 cd monthly_aggregate
-python3 monthly_top_sources.py --begin_date 2020-12-01 --end_date 2020-12-31
+# Calculate top 50 male & female sources for all outlets for December 2020
+python3 monthly_top_sources.py --year 2020 --month 12
 ```
 
-Similarly, we can calculate the top 50 quoted men and women each month to study each person's history (in terms of the number of times they were quoted) as a time series. We limit the calculation to just the top 50 for querying-efficiency reasons.
+Similarly, we can calculate the top 50 quoted men and women each month to study the top quoted people's quote counts as a time series. We limit the calculation to just the top 50 for querying-efficiency reasons (otherwise the time series lookup can become inefficient). Each month's calculation is run one at a time, sequentially, as follows.
 
 ```sh
 cd monthly_aggregate
-python3 monthly_top_sources_timeseries.py --begin_date 2020-04-01 --end_date 2020-04-30
+# Calculate the quote counts for each of the top 50 male & female sources for all outlets for April, May and June 2020
+python3 monthly_top_sources_timeseries.py --year 2020 --month 4
+python3 monthly_top_sources_timeseries.py --year 2020 --month 5
+python3 monthly_top_sources_timeseries.py --year 2020 --month 6
 ```
 
 ### Custom aggregate statistics
-For the reported statistics in the paper, we write custom queries submitted via `pymongo`, as shown in the `custom_aggregate` directory. Any combination of the queries, as defined in `queries.py`, can be run for a specified time period and for specified outlets as shown below.
+To calculate the numbers reported in our research paper, we write custom queries submitted via `pymongo`, as shown in the `custom_aggregate` directory. Any combination of the queries, as defined in `queries.py`, can be run for a custom date range and for specific outlets as shown below.
 
 ```sh
 cd custom_aggregate
 
-# Calculate top 100 male & female sources for all outlets for October 2018
+# Calculate top 100 male & female sources for all outlets (default) for October 2018
 python3 run.py --begin_date 2018-10-01 --end_date 2018-10-31 --top_sources_female --top_sources_male --limit 100 --sort desc
 
 # Calculate the per-outlet source count stats for CBC News and Huffington Post, for December 2020
