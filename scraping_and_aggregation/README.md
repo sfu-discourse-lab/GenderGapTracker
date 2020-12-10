@@ -78,7 +78,7 @@ python3 WomenInMedia/scraper/tools.py "generate_daily_collection"
 ```
 
 ### Monthly aggregate statistics
-For [our research dashboard](gendergaptracker.research.sfu.ca/), we aggregate our results on a monthly basis. This is primarily for us to study trends in our topic models each month, as well as to analyze the top quoted men and women over time.
+For [our research dashboard](https://gendergaptracker.research.sfu.ca/), we aggregate our results on a monthly basis. This is primarily for us to study trends in our topic models each month, as well as to analyze the top quoted men and women over time.
 
 Calculate the top 50 quoted men and women for a particular month by specifying the month and year as follows:
 
