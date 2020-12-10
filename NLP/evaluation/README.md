@@ -4,14 +4,15 @@ This folder contains methodology and code for producing the evaluation results a
 For consistent and reproducible results, make sure any evaluation run locally uses the **same Python environment that is running in production**.
 
 ## Download Data
-The raw text data (containing news article text) as well as the human-annotated data is stored on Vault: `GRIM/Manual Annotation/V4.0_Evaluation`.
-Download the directories `humanAnnotatedQuotes` and `rawtext` from Vault and place them in their respective paths as per the structure below.
+The raw data for evaluation (containing news article text) as well as our human-annotated data can be made available for reproducibility and research purposes, upon signing a license agreement.
+First, download the directories `humanAnnotatedQuotes` and `rawtext.zip` from our cloud storage and place them in their respective paths as per the structure shown below.
 
 ```sh
 ├── .
 |   ├── src
-|   |   ├── quote_extractor_v4.0.py
-|   |   ├── rawtext
+|   |   ├── quote_extractor_latest.py
+|   |   ├── quote_verb_list.txt
+|   |   ├── rawtext.zip
 |   |   ├── eval
 |   |   |   └── humanAnnotatedQuotes
 |   |   └── evaluate_quotes.py
@@ -22,12 +23,12 @@ Download the directories `humanAnnotatedQuotes` and `rawtext` from Vault and pla
 Install Python 3.6+ and follow the below instructions to set up and activate a virtual environment.
 
 ```sh
-python3 -m venv GRIM-3
-source GRIM-3/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 For further development, simply activate the existing environment each time.
 ```sh
-source GRIM-3/bin/activate
+source venv/bin/activate
 ```
 
 #### Install dependencies

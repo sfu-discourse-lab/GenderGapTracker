@@ -1,12 +1,9 @@
 # Extracting quotes, named entities and gender
 
-This directory stores the scripts and methodology used to evaluate quotes and named entities extracted by the NLP pipeline. The earlier version of the evaluation scripts relied on the user running `quote_extractor.py` and `entity_gender_annotator.py` *directly on the database* to generate results, whose results could then be evaluated vs. human annotated data. However, this approach came with some downsides:
+This directory stores the scripts and methodology used to evaluate quotes and named entities extracted by the NLP pipeline. The following sequence of steps is followed to run the NLP pipeline on the evaluation data.
 
-* In May 2020, the Discourse Processing Lab collaborated with Masters students from the University of British Columbia to explore ways to improve quote extraction. Due to permissions issues with external vendors, a standalone quote extraction evaluation pipeline had to be used.
-* It was thus decided to use static copies of the 98 articles (.txt files) to perform quote evaluation.
-
-## 1. Run the quote extractor using the latest quote extractor code
-The version of the quote extractor stored in this directory (`quote_extractor_latest.py`) contains the exact same methods as the one running on the database in production. However, it looks for a `rawtext/` directory that contains 98 `.txt` files of each article's body field instead.
+## 1. Run the quote extractor
+The quote extractor (`quote_extractor_latest.py`) looks for a `rawtext/` directory that contains 98 `.txt` files that house each article's body.
 
 ### Unzip the rawtext files in the current path
 The directory containing the raw text files of the correct IDs is provided in the current path.
@@ -15,7 +12,7 @@ unzip rawtext.zip
 ```
 
 ### Extract quotes
-Run the quote extraction pipeline (and any other updated, better pipelines) to generate JSON files that can be compared with the human annotations. 
+Run the quote extraction pipeline (and any other updated, better pipelines) to generate JSON files that can be compared with the human annotations.
 
 #### Optional arguments
 ```sh
@@ -31,14 +28,14 @@ optional arguments:
 ```
 
 ### Example run command
-For V5.3, this is the command used to generate quotes.
+Use the command below to extract quotes. The example shown is for our V5.3 evaluation, whose directory is specified accordingly.
 ```sh
 python3 quote_extractor_latest.py --input ./rawtext --output ./eval/V5.3
 ```
-This dumps out 98 JSON files containing the extracted quotes and their associated metadata to the directory `./eval/V5.3`.
+This dumps out 98 JSON files containing the extracted quotes and their associated metadata to the directory `./eval/[V5.3](https://github.com/sfu-discourse-lab/GenderGapTracker/tree/master/NLP/evaluation/src/eval)`.
 
 ## 2. Extract named entities and person genders on the DB
-Evaluating named entities requires an additional step - i.e., gender recognition to be run as well, which is only possible right now by writing them to the DB directly. This is because the human annotated data stores the named entities (people and sources) in separate columns depending on whether they are male or female. This process requires access to our gender services and our curated gender cache, which are only accessible through our database. If it is required to reproduce these results externally, please contact Maite Taboada ([mtaboada@sfu.ca](mailto:mtaboada@sfu.ca)) for access to our database and gender services.
+Evaluating named entities is only possible right now by interfacing with our production database directly. This is because the named entity gender annotation process requires access to specific gender services and a custom gender cache, hosted on our database. If it is required to reproduce these results externally, please contact Maite Taboada ([mtaboada@sfu.ca](mailto:mtaboada@sfu.ca)) for access to our database and gender services.
 
 Run the named entity gender annotation script using the command below.
 
@@ -57,9 +54,9 @@ mongoexport -u g-tracker -p "_tracker-gt" --host localhost --authenticationDatab
 --type csv --out  "db_ner_v5.3.csv" \
 --fields "_id,authors,authorsFemale,authorsMale,authorsUnknown,people,peopleFemale,peopleMale,peopleUnknown,sourcesFemale,sourcesMale,sourcesUnknown"
 ```
-This outputs the relevant named entities organized by gender to a file called `db_ner_v5.3.csv`. For future versions, rename the CSV as necessary.
+This outputs the relevant named entities organized by gender to a file called `db_ner_v5.3.csv`. For future versions, rename the output CSV as necessary.
 
 Move this file to the `./eval` directory for evaluation.
 
 ## Evaluation of Quotes and Named Entities
-See [README.md](https://github.com/maitetaboada/WomenInMedia/tree/master/NLP/evaluation/src/eval) in `./eval`.
+See [README.md](https://github.com/sfu-discourse-lab/GenderGapTracker/tree/master/NLP/evaluation/src/eval) in `./eval`.
