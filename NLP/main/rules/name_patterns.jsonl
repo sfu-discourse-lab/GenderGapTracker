@@ -14,7 +14,9 @@
 {"label": "GPE", "pattern": "Red Deer"}
 {"label": "GPE", "pattern": [{"LOWER": "saint"}, {"LOWER": "john"}]}
 {"label": "ORG", "pattern": "OC Transpo"}
+{"label": "ORG", "pattern": "Downing St"}
 {"label": "ORG", "pattern": "Downing St."}
+{"label": "ORG", "pattern": "Downing Street"}
 {"label": "ORG", "pattern": "San Marcos"}
 {"label": "ORG", "pattern": "Yeni Safak"}
 {"label": "ORG", "pattern": "New Yorker"}
@@ -37,15 +39,19 @@
 {"label": "ORG", "pattern": [{"LOWER": "ryan"}, {"LOWER": "remiorz"}]}
 {"label": "ORG", "pattern": [{"LOWER": "the"}, {"LOWER": "star"}]}
 {"label": "ORG", "pattern": [{"LOWER": "rcmp"}, {"LOWER": "sgt"}]}
+{"label": "ORG", "pattern": [{"LOWER": "windsor"}, {"LOWER": "mayor"}]}
 {"label": "FAC", "pattern": "Bergdorf Goodman"}
 {"label": "FAC", "pattern": "Yuk Yuk"}
 {"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
 {"label": "ORG", "pattern": [{"LOWER": "anti"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
 {"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "-"}, {"LOWER": "eu"}]}
 {"label": "ORG", "pattern": [{"LOWER": "eu"}, {"LOWER": "-"}, {"LOWER": "brexit"}]}
+{"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "brexit"}]}
+{"label": "ORG", "pattern": [{"LOWER": "pro"}, {"LOWER": "eu"}]}
+{"label": "ORG", "pattern": [{"LOWER": "eu"}, {"LOWER": "brexit"}]}
 {"label": "NORP", "pattern": [{"LOWER": "wet'suwet'en"}]}
 {"label": "NORP", "pattern": [{"LOWER": "mi'kmaw"}]}
-{"label": "NORP", "pattern": [{"LOWER": "b'nai brith"}]}
+{"label": "NORP", "pattern": [{"LOWER": "b'nai'brith"}]}
 {"label": "NORP", "pattern": "Vuntut Gwitchin"}
 {"label": "NORP", "pattern": "Wahbung Abinoonjiiag"}
 {"label": "NORP", "pattern": "Manitoba Keewatinowi Okimakanak"}
