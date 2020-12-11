@@ -44,9 +44,9 @@ config = {
     },
     'NLP': {
         'MAX_BODY_LENGTH': 20000,
-        'AUTHOR_BLOCKLIST': '<abs_path>/rules/author_blocklist.txt',
-        'NAME_PATTERNS': '<abs_path>/rules/name_patterns.jsonl',
-        'QUOTE_VERBS': '<abs_path>/rules/quote_verb_list.txt'
+        'AUTHOR_BLOCKLIST': '/home/GenderGapTracker/NLP/main/rules/author_blocklist.txt',
+        'NAME_PATTERNS': '/home/GenderGapTracker/NLP/main//rules/name_patterns.jsonl',
+        'QUOTE_VERBS': '/home/GenderGapTracker/NLP/main//rules/quote_verb_list.txt'
     }
 }
 ```
@@ -57,7 +57,7 @@ The below JSON fields are used:
 Contains the host name, port, username and password for logging into the MongoDB production server.
 
 #### Gender services
-Contains the option flags for the 'Genderize' and 'Gender-API' external services. Note that from V4.0 onwards, we do not use Genderize anymore (our subscription has expired), so it is disabled. Only the Gender-API subscription is still active and is used as a fallback when we encounter names that aren't in our cache. The gender recognition service is hosted as a Flask service accessible via 'localhost' on port 5000.
+Contains the option flags for the 'Genderize' and 'Gender-API' external services, which can be enabled or disabled depending on the availability of API credits. The gender prediction service is hosted on a Flask server accessible on 'localhost' via port 5000.
 
 #### NLP module
 The NLP modules require static file inputs containing the blocklist words for the author names, custom name patterns (to detect non-standard `PERSON` named entities), and the quote verb allowlist. **Make sure the _absolute_ paths to these files are specified**.
@@ -68,7 +68,7 @@ To avoid memory problems in spaCy on very long articles (which could possibly cr
 To speed up the CPU-intensive spaCy operations, we implement concurrent processing using the `multiprocessing` module from Python's standard library. In this approach, we divide the processing of each article's quotes/entities into batches, with each batch being processed independently on a separate process. Because the articles are completely independent of one another (no information needs to be shared between individual articles at any point during quote extraction/entity gender annotation), this is an *embarrassingly parallel* problem that is very amenable to multi-processing.
 
 ### Multi-processing vs. Multi-threading
-It is important to not confuse multi-threading with multi-processing. In general, multi-threading is used to speed up I/O-bound operations (such as reading//writing information from a database), whereas multi-processing is used to speed up CPU-intensive operations (such as numerical computation or NLP tasks). 
+It is important to not confuse multi-threading with multi-processing. In Python, multi-threading is used to speed up I/O-bound operations (such as reading//writing or querying information from a database), whereas multi-processing is used to speed up CPU-intensive operations (such as numerical computation or NLP tasks).
 
 Our initial tests showed that transferring data from MongoDB to Python (through `pymongo`) is very efficient - `pymongo` has efficient methods in place to return a huge list of document IDs that we can then iterate though efficiently. `pymongo` also returns the data in batches of generator objects (cursors), with each batch being roughly 100 documents or so in size (depending on the individual documents' size). This is *not* an I/O-intensive step, because `pymongo` is very efficient at returning large batches of data at once, so multi-threading will not provide any benefit in this case.
 
@@ -80,7 +80,7 @@ The figure below highlights the workflow used in the quote extractor and entity 
 
 ![](img/concurrent.png)
 
-We first run a one-time query to retrieve a large batch of ObjectIDs from MongoDB (either from a user-specified time period, or the entire dataset) - because the ObjectIDs are by default indexed by MongoDB, this is a relatively inexpensive query for even very large databases. We persist the cursor of IDs into a Python list (again, not expensive because we store just the IDs and no other information), following which we divide the list of IDs into batches, or *chunks* as shown in the image. 
+We first run a one-time query to retrieve a large batch of ObjectIDs from MongoDB (either from a user-specified time period, or the entire dataset) - because the ObjectIDs are by default indexed by MongoDB, this is a relatively inexpensive query for even very large databases. We persist the cursor of IDs into a Python list (again, not expensive because we store just the IDs and no other information), following which we divide the list of IDs into batches, or *chunks* as shown in the image.
 
 Each available core on the machine takes in a single batch (20-50 article IDs at a time), retrieves the full article data for every item in the batch concurrently, and processes it for the NLP tasks (quote extraction and entity gender annotation). Once a batch is exhausted, it retrieves the next batch and repeats the same process, until all the batches from the entire list are exhausted. This process is very memory-efficient, and utilizes all available CPUs in the machine to the maximum possible extent. In case the script is run on a machine that is also responsible for hosting the database, the number of processes can be reduced using the `--poolsize` argument to ensure that some of the cores are always free for other essential tasks.
 
@@ -226,42 +226,40 @@ The script takes about half an hour (as of September 2020) to run, following whi
 ### 5. Rerun monthly top sources scripts for research dashboard
 Next, we need to update the precomputed stats for the research dashboard's top-quoted sources and monthly trends apps. The paths to the scripts that compute values for these apps are shown below:
 
-* `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources.py`
-* `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources_timeseries.py`
+1. `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources.py`
+1. `GenderGapTracker/scraping_and_aggregation/monthly_aggregate/monthly_top_sources_timeseries.py`
 
-Script #1 calculates the top 15 sources for each month for either gender, used for displaying the top-quoted sources lollipop chart. Script #2 aggregates the total number of quotes for all sources (of either gender) that appeared in the top 50 sources for any given month.
+Script #1 calculates the top 50 sources for each month for either gender, used for displaying the top-quoted sources lollipop chart. Script #2 aggregates the total number of quotes for all sources (of either gender) that appeared in the top 50 sources for any given month.
 
 #### Rerun script #1:
-```sh
-cd GenderGapTracker/scraping_and_aggregation/monthly_aggregate
-python3 monthly_top_sources.py --begin_date 2020-08-01 --end_date 2020-08-31
 ```
-Alternatively, a shell script is written that executes the script for each month separately. A snippet is shown below.
+cd GenderGapTracker/scraping_and_aggregation/monthly_aggregate
+python3 monthly_top_sources.py --year 2020 --month 8
+```
+Alternatively, a shell script is written that executes the aggregations for each month one by one. A snippet of the shell script is shown below.
 
 ```sh
 #!/usr/bin/sh
-python3 monthly_top_sources.py --begin_date 2020-04-01 --end_date 2020-04-30
-python3 monthly_top_sources.py --begin_date 2020-05-01 --end_date 2020-05-31
-python3 monthly_top_sources.py --begin_date 2020-06-01 --end_date 2020-06-30
-python3 monthly_top_sources.py --begin_date 2020-07-01 --end_date 2020-07-31
-python3 monthly_top_sources.py --begin_date 2020-08-01 --end_date 2020-08-31
+python3 monthly_top_sources.py --year 2020 --month 4
+python3 monthly_top_sources.py --year 2020 --month 5
+python3 monthly_top_sources.py --year 2020 --month 6
+python3 monthly_top_sources.py --year 2020 --month 7
+python3 monthly_top_sources.py --year 2020 --month 8
 ```
 
-Execute the shell script using nohup: `nohup bash execute.sh > top_sources.out`
+Execute the shell script as follows: `nohup bash execute.sh > top_sources.out`
 
 #### Rerun script #2 after deleting existing collection
-To rerun script #2, i.e., the one that calculates the number of quotes per source as a time series, **simply rerunning the script is not enough**. During aggregation, if any preexisting sources disappeared in the current version (i.e., those that existed in the previous version but are now no longer valid sources), no automatic deletion of the old, out-of-date names/counts is performed (for safety reasons). As a result, **we must first delete the existing collection on the database before rerunning script #2**. This ensures that we do not serve any old results that are no longer valid on the monthly trends dashboard app.
+The existing collection in the `mediaTracker` database for this app is called `monthlySourcesTimeSeries`. Running this script automatically deletes existing documents in this collection that match the same month as specified as an input argument, and then repopulates the database with the latest monthly aggregate quote counts for the top sources.
 
-The existing collection in the `mediaTracker` database for this app is called `monthlySourcesTimeSeries`. **Delete this collection** every time a new database update is performed on the full backlog.
-
-Just as before, the update script can be run using a shell script.
+The commands below can be run through a shell script.
 
 ```sh
 #!/usr/bin/sh
-python3 monthly_top_sources_timeseries.py --begin_date 2020-04-01 --end_date 2020-04-30
-python3 monthly_top_sources_timeseries.py --begin_date 2020-05-01 --end_date 2020-05-31
-python3 monthly_top_sources_timeseries.py --begin_date 2020-06-01 --end_date 2020-06-30
-python3 monthly_top_sources_timeseries.py --begin_date 2020-07-01 --end_date 2020-07-31
-python3 monthly_top_sources_timeseries.py --begin_date 2020-08-01 --end_date 2020-08-31
+python3 monthly_top_sources_timeseries.py --year 2020 --month 4
+python3 monthly_top_sources_timeseries.py --year 2020 --month 5
+python3 monthly_top_sources_timeseries.py --year 2020 --month 6
+python3 monthly_top_sources_timeseries.py --year 2020 --month 7
+python3 monthly_top_sources_timeseries.py --year 2020 --month 8
 ```
-Execute the shell script using nohup: `nohup bash execute.sh > monthly_trends.out`
+Execute the shell script as follows: `nohup bash execute.sh > monthly_trends.out`

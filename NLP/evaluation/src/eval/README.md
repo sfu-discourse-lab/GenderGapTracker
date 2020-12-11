@@ -1,7 +1,7 @@
 # Evaluation scripts
 
 ## Evaluate quotes
-The evaluation script `evaluate_quotes.py` compares each JSON file in the `humanAnnotatedQuotes` directory with its corresponding namesake in the script-generated quotes directory. It takes in two input arguments are provided as follows.
+The evaluation script `evaluate_quotes.py` compares each JSON file in the `humanAnnotatedQuotes` directory with its corresponding namesake in the script-generated quotes directory (`./V5.3` in this case). It takes in two input arguments as follows.
 
 #### Script arguments
 ```sh
@@ -16,7 +16,7 @@ optional arguments:
 
 #### Example run command
 ```sh
-python3 evaluate_quotes.py -a humanAnnotatedQuotes -b V5.2
+python3 evaluate_quotes.py --true humanAnnotatedQuotes --pred V5.3
 ```
 This outputs the quotes to a directory named after the version of the code.
 
@@ -43,13 +43,13 @@ Verb Match - 0.8, Accuracy: 93.1%
 ```
 
 #### CSV and JSON files
-To persist the evaluation results over the long term, CSV and JSON files containing the raw numbers are output to the `./results/humanAnnotatedQuotes-V5.2` directory. These can then be used to populate the **`Comparison Result V5.x.xlsx`** Excel spreadsheet.
+To persist the evaluation results, CSV and JSON files containing the raw numbers are output to the `./results/humanAnnotatedQuotes-V5.3` directory. These were used to populate the **`Comparison Result V5.3.xlsx`** spreadsheet present in this directory.
 
-Each quote JSON file has the nomenclature `<doc_id>_0.3.json` and `<doc_id>_0.8.json` to indicate the two evaluation thresholds. The CSV files have a similar nomenclature: `quote_results_0.3.csv` and `quote_results_0.8.csv`. 
+Each quote JSON file has the nomenclature `<doc_id>_0.3.json` and `<doc_id>_0.8.json` to indicate the two evaluation thresholds we use in the paper. The CSV files have a similar nomenclature: `quote_results_0.3.csv` and `quote_results_0.8.csv`.
 
 
 ## Evaluate NER and gender
-Named Entities and gender recognition are evaluated using the `evaluate_ner_and_gender.py` script - as mentioned before, evaluating named entities and gender are done in one step because the entities themselves are organized by gender. The script `evaluate_ner_and_gender.py`  compares the named entities extracted by the `entity_gender_annotator` (running on the database) vs. the human-annotated named entities labelled in the file `AnnotationTable_byArticle_withReplacementArticles.xlsx`.
+Named Entities and gender prediction are evaluated using the `evaluate_ner_and_gender.py` script -- note that evaluating the named entities and gender are done all at once (and not separately) because the entities themselves are organized by gender. The `evaluate_ner_and_gender.py` script compares the named entities extracted by the running our entity gender annotator vs. the human-annotated named entities in the file `AnnotationTable_byArticle_withReplacementArticles.xlsx`.
 
 #### Script Arguments
 ```sh
@@ -62,11 +62,11 @@ optional arguments:
   --pred PRED, -b PRED  Directory containing new script-generated Data
   --csv CSV, -c CSV     CSV file output from MongoDB containing NER fields
 ```
-In this case, the `--true` amd `--pred` arguments are the same as the one used by `quote_extractor.py`, but there is a third argument to indicate the user-specified CSV file with the named entity columns (obtained by running `entity_gender_annotator.py` on the database). The default value for this `--csv` argument is the `db_ner_v5.2.csv` file that was generated in the previous step.
+The`--true` amd `--pred` arguments are the similar to those seen in the quote evaluation script. The third argument, `--csv`, is used to specify the name of the CSV file with the named entity results (obtained by running `entity_gender_annotator.py` on the database). The default value for this `--csv` argument is the `db_ner_v5.3.csv` file present in this directory, obtained from our V5.3 evaluation.
 
 #### Example run command
 ```sh
-python3 evaluate_ner_and_gender.py -a humanAnnotatedQuotes -b V5.2 -c db_ner_v5.2.csv
+python3 evaluate_ner_and_gender.py --true humanAnnotatedQuotes --pred V5.3 --csv db_ner_v5.3.csv
 ```
 
 ### Outputs from named entity and gender evaluation
@@ -107,9 +107,9 @@ Sources unknown ratio: 4.2%
 ```
 
 #### CSV and JSON files
-Just as with the quote evaluation, CSV and JSON files containing the raw numbers are output to the `./results/humanAnnotatedQuotes-V5.2` directory. These can then be used to populate the `Comparison Result V5.x.xlsx` Excel spreadsheet.
+Just as with the quote evaluation, CSV and JSON files containing the raw numbers are output to the `./results/humanAnnotatedQuotes-V5.3` directory. These were then used to populate the `Comparison Result V5.3.xlsx` spreadsheet present in this directory.
 
 Each entity JSON file has the nomenclature `<doc_id>_entities.json`. The CSV files have the following nomenclature: `entities_result_detailed.csv` and `entities_result_summary.csv`.
 
-## Long-term Storage
-It is recommended to use the CSV outputs from both scripts to keep the master spreadsheet **`Comparison Result V5.X.xlsx`** up to date on Vault. Keeping each GGT version's evaluation results in one sheet allows us to track the progress of the NLP pipeline across different versions.
+## Evaluation summary sheet
+The master spreadsheet **`Comparison Result V5.3.xlsx`** contains the results of our latest evaluation stage, V5.3, as well as a history of the improvements made across the various versions of the GGT software.
