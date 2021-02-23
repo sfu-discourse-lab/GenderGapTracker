@@ -8,20 +8,26 @@ to enhance awareness of women’s portrayal in public discourse through hard evi
 
 The Gender Gap Tracker is a collaboration between [Informed Opinions](https://informedopinions.org/), a non-profit dedicated to amplifying women’s voices in media and Simon Fraser University, through the [Discourse Processing Lab](https://www.sfu.ca/discourse-lab.html) and the [Big Data Initiative](https://www.sfu.ca/big-data/big-data-sfu).
 
-## Contents
-
-* `dashboard_for_research`: [Research dashboard and apps](https://gendergaptracker.research.sfu.ca/) that allow us to explore the GGT data in more detail.
-* `NLP`: NLP modules for performing quote extraction and entity gender annotation on the news articles.
-* `scraping_and_aggregation`: Modules for scraping news articles from various Canadian news organizations' websites, and the code we use to extract aggregate statistics from the database.
-
+## Research Paper
+> Asr FT, Mazraeh M, Lopes A, Gautam V, Gonzales J, Rao P, Taboada M. (2021) The Gender Gap Tracker: Using Natural Language Processing to measure gender bias in media. PLoS ONE 16(1): e0245533. https://doi.org/10.1371/journal.pone.0245533
 
 ## Contributors
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
+## Contents of this repo
+
+* `dashboard_for_research`: [Research dashboard and apps](https://gendergaptracker.research.sfu.ca/) that allow us to explore the GGT data in more detail.
+* `NLP`: NLP modules for performing quote extraction and entity gender annotation on the news articles.
+* `scraping_and_aggregation`: Modules for scraping news articles from various Canadian news organizations' websites, and the code we use to extract aggregate statistics from the database.
+
 ## Future directions
 
 Future research directions include an examination of how female and male quotations are distributed in the articles from different topics and written by female vs. male authors. In future versions of the software, we are planning to visualize more fine-grained information about who is being quoted, separating politicians, witnesses and/or victims, from experts (as informed sources of analysis, context and opinion). Finally, we are looking into different ways of separating wire copy from the original publication of each news outlet in order to provide a clearer view of the gender gap in Canadian media, produced by the news outlets themselves. 
+
+## Data
+
+The data was downloaded from public and subscription websites of newspapers, under the ‘fair dealing’ provision in Canada’s Copyright Act. This means that the data can be made available (upon signing a licence agreement) **only** for non-commercial and/or research purposes.
 
 ## Contact
 
