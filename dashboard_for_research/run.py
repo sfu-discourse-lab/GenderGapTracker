@@ -1,3 +1,4 @@
+from datetime import datetime
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
@@ -21,27 +22,36 @@ home_page = [
     html.Div(children=[
         html.Br(),
         dcc.Markdown("""
-            This dashboard showcases results from our study on gender bias in the media via the 
-            [Gender Gap Tracker (GGT)](https://gendergaptracker.informedopinions.org/), an automated system
-            that measures men and women’s voices on
-            seven major Canadian news outlets in real time. We analyze the rich information in news articles
-            using Natural Language Processing (NLP) and quantify the discrepancy in proportions of men and
-            women quoted. Our larger goals through this project are
-            to enhance awareness of women’s portrayal in public discourse through hard evidence, and to 
-            encourage news organizations to provide a more diverse set of voices in their reporting.
+            This research dashboard showcases results from our study on gender bias in the media. 
+            We present the [Gender Gap Tracker (GGT)](https://gendergaptracker.informedopinions.org/), 
+            an automated system that measures men and women’s voices on seven major Canadian news outlets in real time. 
+            We analyze the rich information in news articles using Natural Language Processing (NLP) and quantify the 
+            discrepancy in proportions of men and women quoted. Our larger goals through this project are to enhance 
+            awareness of women’s portrayal in public discourse through hard evidence, and to encourage news 
+            organizations to provide a more diverse set of voices in their reporting.
 
             The Gender Gap Tracker is a collaboration between [Informed Opinions](https://informedopinions.org/),
             a non-profit dedicated to amplifying women’s voices in media and Simon Fraser University, through
             the [Discourse Processing Lab] (https://www.sfu.ca/discourse-lab.html) and the
             [Big Data Initiative](https://www.sfu.ca/big-data/big-data-sfu).
 
-            Multiple interactive applications are being implemented to explore the Gender Gap 
-            Tracker's data. Click on the buttons shown on this page to access each application.
+            See our peer-reviewed publications for more detailed technical information on our methodology:  
+              
+            1. Asr FT, Mazraeh M, Lopes A, Gautam V, Gonzales J, Rao P, Taboada M. (2021) 
+            The Gender Gap Tracker: Using Natural Language Processing to measure gender bias in media. 
+            *PLoS ONE 16(1)*:e0245533. https://doi.org/10.1371/journal.pone.0245533  
+            2. Rao P, Taboada M. (2021), Gender bias in the news: A scalable topic modelling and visualization
+            framework. *Frontiers Artif. Intell.* https://doi.org/10.3389/frai.2021.664737
 
-            Contact: Maite Taboada, [mtaboada@sfu.ca](mailto:mtaboada@sfu.ca)
+            All of our code for scraping, NLP, topic modelling and data visualization is publicly available on GitHub
+            so that others can benefit from the methodology:  
+            https://github.com/sfu-discourse-lab/GenderGapTracker
+
+            For more information about the research methodology and for questions regarding collaboration, 
+            please contact Maite Taboada at [mtaboada@sfu.ca](mailto:mtaboada@sfu.ca).
             """
         ),
-        html.P(['© 2020 ', html.A('Discourse Processing Lab', href='https://www.sfu.ca/discourse-lab')],
+        html.P(['© 2021 ', html.A('Discourse Processing Lab', href='https://www.sfu.ca/discourse-lab')],
             style={'font-size': '0.8em', 'color': '#a0a0a0'}
         )
     ])
@@ -82,7 +92,7 @@ def case_footer(enable_footer):
                 html.Tr(
                     [html.Td(html.Img(src="/static/SFULogo.png", style={'height': '30px', 'width': '120px'}))] +
                     [html.Td(html.Img(src="/static/discourse-lab-logo.jpeg", style={'height': '60px', 'width': '100px'}))] +
-                    [html.Td(html.Div(html.P(['© 2020 Discourse Processing Lab.'])))]
+                    [html.Td(html.Div(html.P([f"© {datetime.today().year} Discourse Processing Lab."])))]
                 )
             )
         ], className='mainfooter'),

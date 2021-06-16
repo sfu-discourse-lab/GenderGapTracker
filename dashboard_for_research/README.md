@@ -2,6 +2,7 @@
 
 - [Research Dashboard](#research-dashboard)
   - [Background](#background)
+  - [Password-protection for write dashboard](#password-protection-for-write-dashboard)
   - [Installation](#installation)
       - [spaCy language models](#spacy-language-models)
   - [Pre-requisites](#pre-requisites)
@@ -12,6 +13,7 @@
     - [Update to the latest code version](#update-to-the-latest-code-version)
     - [Restart the server](#restart-the-server)
   - [Update `aliases.txt` file](#update-aliasestxt-file)
+      - [Ensure Dash is serving custom JS locally](#ensure-dash-is-serving-custom-js-locally)
   - [Troubleshooting](#troubleshooting)
   - [Dashboard Design & Structure](#dashboard-design--structure)
     - [Multi-page dashboard](#multi-page-dashboard)
@@ -31,6 +33,14 @@
 ---
 ## Background
 This page contains code for dashboard apps that we are building internally in the discourse processing lab, pertaining to the Gender Gap Tracker. To speed up development and experimentation, the [Plotly Dash](https://dash.plotly.com/) framework is used. Dash is a web application framework built on top of Flask, Plotly.js and React.js that greatly increases the ease with which reactive interfaces can be built, without requiring users to write JavaScript code (all code in this repo is written in Python).
+
+There are two main dashboards deployed and described in this README:
+* **Read** dashboard: displays results that are read from our MongoDB database. The URL for the read dashboard is [gendergaptracker.research.sfu.ca/](gendergaptracker.research.sfu.ca/).
+* **Write** dashboard: allows a user to write data directly to the database using an interactive UI. The URL for the write dashboard is [admin.gendergaptracker.research.sfu.ca/](gendergaptracker.research.sfu.ca/).
+
+
+## Password-protection for write dashboard
+The write dashboard is deployed as an admin page with password protection - this is mainly because exposing write-functionality on a public URL to unprivileged users can be a serious security risk. All code for the write-dashboard is separated from the read dashboard, in the [admin](https://github.com/maitetaboada/WomenInMedia/tree/master/dashboard_for_research/admin) directory.
 
 
 ## Installation
@@ -61,7 +71,7 @@ sudo service gender_recognition restart
 ```
 
 #### MongoDB database connection
-All our data for the GGT is hosted on a MongoDB database. The dashboard must be run on a machine that has an ssh tunnel to the database set up - this allows us to pass data back and forth from MongoDB to the dashboard's UI as required.
+All our data for the GGT is hosted on a MongoDB database. Both the read and write dashboards must be run on a machine that has an ssh tunnel to the database set up - this allows us to pass data back and forth from MongoDB to the dashboard's UI as required.
 
 ### Run development server
 During development, run the dash app locally (after starting the gender recognition Flask server and setting up a tunnel to the database) as follows:
@@ -77,16 +87,21 @@ The app is deployed using `nginx` (for load balancing incoming HTTP traffic) and
 `sudo` to the approved user `g-tracker` on the deployment server, and `git pull` the latest version of the code.
 ```sh
 sudo -u g-tracker -i
-cd GenderGapTracker
+cd WomenInMedia
 git pull
 ```
 
 ### Restart the server
 This step needs root access. To push dashboard and app updates to production, restart the `gunicorn` service as shown below.
 
-To update the dashboard, use the below command:
+To update the read dashboard, use the below command:
 ```sh
 sudo service g-tracker restart
+```
+
+To update the read dashboard, use the below command:
+```sh
+sudo service g-tracker-admin restart
 ```
 
 ## Update `aliases.txt` file
@@ -103,10 +118,19 @@ Sarah Huckabee Sanders, Sarah Sanders
 
 The first name in each line represents the primary name, and the remaining names (**separated by commas**) are the various aliases that different outlets use for that person. We can extend this list as much as required, and the corresponding dashboard app self-updates to aggregate the quote counts, merging instances of each alias to produce more accurate statistics.
 
----
+#### Ensure Dash is serving custom JS locally
+To ensure that Dash serves the JavaScript file from the local directory during deployment, ensure that the server config is set to `serve_locally` as shown below.
+
+```python
+app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
+app.css.config.serve_locally = True
+app.scripts.config.serve_locally = True
+```
+Once these steps are followed, the server should begin tracking visits to the dashboard (it takes 1-2 days for stats to begin showing up on the Google Analytics account).
+
 
 ## Troubleshooting
-Deployment of this application is slightly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
+Deployment of this application is slighly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
 
 Due to an [issue with circular imports](https://dash.plotly.com/urls) when defining multi-page applications in Plotly Dash, the Flask server object must be created in a separate file, which we call  `server.py`:
 
@@ -132,6 +156,8 @@ ExecStart=/g-tracker/venv/bin/gunicorn --workers 3 --bind unix:g-tracker.sock -m
 ```
 
 Here, `run:server` refers to the `server` object in `server.py`, run using `run.py`.
+
+---
 
 ## Dashboard Design & Structure
 
@@ -168,7 +194,7 @@ The breakdown of this dash multi-page dashboard is shown below.
 #### Root directory
 This directory contains the main definition of the Flask server on top of which dash runs, as well as the index page (i.e. the entry point) to the dashboard, which contains the welcome information for the user to begin exploring content. For clarity, the default files shown in the Plotly Dash GitHub repo's [multi-page app example](https://github.com/plotly/dash-recipes/tree/master/multi-page-app) are renamed from (`index.py`, `app.py`) to (`run.py`, `server.py`) respectively.
 
-The file `run.py` is the entry point to the dashboard and contains links to each of the individual apps in the dashboard. The file `server.py`, as described earlier, exists to separate the Flask server initialization from the callback definitions, which avoids issues with circular imports. `config.py` exists primarily to store the different database settings and credentials that are used to read data from the database to the applications, and perform other essential tasks.
+The file `run.py` is the entry point to the dashboard and contains links to each of the individual apps in the dashboard. The file `server.py`, as described earlier, exists to separate the Flask server initialization from the callback definitions, which avoids issues with circular imports. `config.py` exists purely to store the different database settings and credentials that are used to read/write data in the applications.
 
 #### Apps
 Each application is stored as a separate Python file. Doing so allows each app's logic to be self-contained and it becomes very easy to add new, independent apps while linking them to the dashboard's entry point in `run.py`.
@@ -180,7 +206,7 @@ Keeping a distinct `style.css` file helps separate out the HTML element styling 
 This directory houses static files like logos or other files that are unrelated to the data flow within each app.
 
 ## Application code - readability guidelines
-This section contains guidelines on making the application code containing unique functionality (such as "text analyzer", or "topic models") **more readable and maintainable** for future developers.
+This section contains guidelines on making the application code containing unique functionality (such as "analyzing custom text", or "topic models") **more readable and maintainable** for future developers.
 
 In general, a dash app should have three main sections, separated out by clearly labelled comment-blocks as shown below.
 

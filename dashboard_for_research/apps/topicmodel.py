@@ -172,17 +172,24 @@ def layout():
     children_list = [
         html.Div([
             html.H2('Topic modelling'),
-            dcc.Markdown('''
-                Our goal in this section is to analyze whether female
-                and male sources are more likely to be associated with specific topics in 
-                the news. We utilize data scraped from seven Canadian news
-                organizations' websites, following which we identify the gender of those quoted
-                (*sources*). We then perform large-scale topic discovery on each month's data 
-                using Latent Dirichlet Allocation (LDA), as shown below.
-            ''')],
+            dcc.Markdown(
+                dangerously_allow_html=True,
+                children=('''
+                Our goal in this section is to analyze whether female and male sources are more likely
+                to be associated with specific topics in the news. We utilize data scraped from six<sup>1</sup>
+                Canadian news organizations' websites, following which we identify the gender of those
+                quoted (sources). We then perform large-scale topic discovery on each month's data using
+                Latent Dirichlet Allocation (LDA), as shown below.
+            '''))],
         ),
         html.Div(html.Img(src="/static/topic-pipeline-flowchart-1.png", style={'width': '100%'})),
+        html.P([
+            html.Sup(1),
+            '''Note that there were seven outlets between October 2018 and March 2021, after which HuffPost Canada stopped publishing.'''
+        ], style={'font-size': '95%'},
+        ),
         html.Br(),
+        html.H5('Select month'),
         html.P('From the dropdown menu below, select a recent month to view its results.'),
         dcc.Dropdown(
             id='date-dropdown',
@@ -194,7 +201,7 @@ def layout():
             className='dropdown'
         ),
         html.Br(),
-        html.H4('Top keywords for each topic discovered'),
+        html.Div(id='top15_datestring'),
         html.Div(
             DataTable(
                 id='topic-table',
@@ -289,6 +296,15 @@ def get_topic_data(value):
     return data
 
 
+@app.callback(Output('top15_datestring', 'children'),
+              Input('date-dropdown', 'value'))
+def display_top15_datestring(date_val):
+    display_text = f"""
+        Topic keywords for the top 15 topics in {num2str_month(date_val)}
+    """
+    return html.H5(display_text)
+
+
 @app.callback(Output('female-male-corpus-stats', 'children'),
               [Input('topic-data', 'data'),
                Input('date-dropdown', 'value')])
@@ -363,6 +379,8 @@ def update_heatmap(data):
         return {'data': []}
     else:
         dff, y_labels = construct_outletDF(data)
+        # Calculate chart width dynamically based on number of columns (uses a trendline obtained by trial & error)
+        width = 35 * len(dff.columns.tolist()) + 493
         return {
             'data': [{
                 'type': 'heatmap',
@@ -391,7 +409,7 @@ def update_heatmap(data):
             'layout': {
                 'font': {'size': 14},
                 'height': 600,
-                'width': 740,
+                'width': width,
                 'xaxis': {'side': 'top', 'gridcolor': 'rgba(0, 0, 0, 0)',
                           'tickangle': -35.0, 'ticks': 'outside'},
                 'yaxis': {'side': 'left', 'gridcolor': 'rgba(0, 0, 0, 0)', 'ticks': 'outside'},
@@ -411,6 +429,8 @@ def update_gender_heatmap(data):
         return {'data': []}
     else:
         dff, y_labels = construct_outlet_gender_DF(data)
+        # Calculate chart width dynamically based on number of columns (uses a trendline obtained by trial & error)
+        width = 35 * len(dff.columns.tolist()) + 467
         return {
             'data': [{
                 'type': 'heatmap',
@@ -444,7 +464,7 @@ def update_gender_heatmap(data):
             'layout': {
                 'font': {'size': 14},
                 'height': 600,
-                'width': 710,
+                'width': width,
                 'xaxis': {
                     'side': 'top', 'gridcolor': 'rgba(0, 0, 0, 0)',
                     'tickangle': -35.0, 'ticks': 'outside'

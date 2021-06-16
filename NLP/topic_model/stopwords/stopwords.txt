@@ -9,9 +9,12 @@
 2019
 2020
 2021
+2022
+2023
 3
 4
 5
+5127en
 5etfw
 6
 7
@@ -64,18 +67,21 @@ app
 appear
 appreciate
 appropriate
+apr
 april
 are
 area
 aren
 aren't
 around
+article
 as
 aside
 ask
 asking
 associated
 at
+aug
 august
 available
 away
@@ -105,6 +111,7 @@ big
 bit
 both
 brief
+browser
 but
 by
 c
@@ -163,6 +170,7 @@ currently
 d
 day
 days
+dec
 december
 definitely
 described
@@ -216,6 +224,7 @@ f
 facebook
 family
 far
+feb
 february
 feel
 feeling
@@ -224,6 +233,7 @@ felt
 few
 fifth
 file
+files
 find
 finding
 finds
@@ -238,6 +248,7 @@ formerly
 forth
 found
 four
+fri
 friday
 friend
 friends
@@ -249,6 +260,7 @@ gave
 get
 gets
 getting
+getty
 give
 given
 gives
@@ -305,6 +317,7 @@ however
 href
 http
 https
+httpstco
 i
 i'd
 i'll
@@ -314,6 +327,7 @@ ie
 if
 ignored
 image
+images
 immediate
 in
 inasmuch
@@ -344,8 +358,15 @@ item
 its
 itself
 j
+jan
 january
+join
+joined
+joining
+joins
+jul
 july
+jun
 june
 just
 k
@@ -372,6 +393,7 @@ liked
 likely
 likes
 liking
+linkedin
 little
 live
 lived
@@ -380,6 +402,10 @@ lives
 livest
 living
 ll
+load
+loaded
+loading
+loads
 look
 looking
 looks
@@ -398,6 +424,7 @@ makes
 making
 man
 many
+mar
 march
 may
 maybe
@@ -411,6 +438,7 @@ mightn
 mightn't
 minute
 minutes
+mon
 monday
 month
 months
@@ -441,6 +469,7 @@ never
 nevertheless
 new
 news
+newsletter
 next
 night
 nine
@@ -453,12 +482,14 @@ nor
 normally
 not
 nothing
+nov
 novel
 november
 now
 nowhere
 o
 obviously
+oct
 october
 of
 off
@@ -498,6 +529,7 @@ per
 perhaps
 photo
 pic
+pinterest
 place
 placed
 play
@@ -507,6 +539,7 @@ possible
 post
 posted
 posting
+postmedia
 posts
 press
 presumably
@@ -534,6 +567,7 @@ regards
 relatively
 report
 respectively
+reuters
 right
 s
 said
@@ -559,6 +593,8 @@ sending
 sends
 sensible
 sent
+sep
+sept
 september
 serious
 seriously
@@ -619,6 +655,7 @@ store
 story
 stream
 sub
+subscribe
 such
 sunday
 sup
@@ -683,6 +720,7 @@ three
 through
 throughout
 thru
+thu
 thursday
 thus
 time
@@ -701,6 +739,7 @@ tries
 truly
 try
 trying
+tue
 tuesday
 twice
 twitter
@@ -736,6 +775,10 @@ ve
 very
 via
 video
+view
+viewed
+viewing
+views
 viz
 vs
 w
@@ -808,6 +851,7 @@ writing
 written
 wrote
 wrought
+www
 x
 y
 year

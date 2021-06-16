@@ -366,6 +366,8 @@ def update_gender_heatmap(data):
         return {'data': []}
     else:
         dff, y_labels = construct_outlet_gender_DF(data)
+        # Calculate chart width dynamically based on number of columns (uses a trendline obtained by trial & error)
+        width = 35 * len(dff.columns.tolist()) + 467
         return {
             'data': [{
                 'type': 'heatmap',
@@ -399,7 +401,7 @@ def update_gender_heatmap(data):
             'layout': {
                 'font': {'size': 14},
                 'height': 600,
-                'width': 710,
+                'width': width,
                 'xaxis': {
                     'side': 'top', 'gridcolor': 'rgba(0, 0, 0, 0)',
                     'tickangle': -35.0, 'ticks': 'outside'

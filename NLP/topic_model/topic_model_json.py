@@ -1,14 +1,13 @@
 import argparse
-import datetime
-import json
 import os
+import json
+from datetime import datetime
 from pyspark.ml import Pipeline
 from pyspark.ml.clustering import LDA
 from pyspark.ml.feature import (
     CountVectorizer, RegexTokenizer,
     IDF, StopWordsRemover
 )
-from pymongo import MongoClient
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 import pyspark.sql.types as t
@@ -19,26 +18,27 @@ from sparknlp.base import DocumentAssembler, Finisher
 # Config
 from config import config
 
-
-def convert_date(date_str):
-    return datetime.datetime.strptime(date_str, '%Y-%m-%d')
-
-
-def get_begin_date():
-    """Automatically generate a string representing the first day of last month."""
-    today = datetime.datetime.today()
-    # Easy way to get last month is to subtract close to 30 days from today
-    # The assumption is that this script is ONLY run once a month, at the start.
-    last_month = today - datetime.timedelta(days=25)
-    begin_date = last_month.strftime("%Y-%m") + "-01"  # First day of last month
-    return begin_date
+root_dir = "./"
+# root_dir = "/home/pprao/projects/ctb-popowich/ggt"
+dataloc = os.path.join(root_dir, "ggt_english_2018-10-01_2020-04-20")
 
 
-def get_end_date():
-    """Automatically generate a string representing the first day of this month."""
-    today = datetime.datetime.today()
-    end_date = today.strftime("%Y-%m") + "-01"  # First day of this month
-    return end_date
+def write_json(json_object, filename):
+    with open(filename, 'w') as f:
+        json.dump(json_object, f)
+
+
+def timestampRangeDF(df, begin_date, end_date):
+    """Subset the full data to all articles published later than a
+       start timestamp and earlier than an end timestamp.
+    """
+    start = "{} 00:00:00".format(begin_date)
+    end = "{} 23:59:59".format(end_date)
+    filteredDF = df.filter(f.col("timestamp") > f.unix_timestamp(
+                           f.lit(start)).cast('timestamp')) \
+        .filter(f.col("timestamp") < f.unix_timestamp(
+                f.lit(end)).cast('timestamp'))
+    return filteredDF
 
 
 def run_spark_preproc_pipeline(df, stopwordfile):
@@ -143,10 +143,19 @@ def describe_topics(mlModel):
     return topics
 
 
+def get_topic_summary_dict(topics, params):
+    topic_dict = {}
+    words_and_weights = {}
+    # Add summary parameters to topic JSON
+    topic_dict['params'] = params
+    for num, data in enumerate(topics):
+        words_and_weights[str(num + 1)] = data
+    topic_dict['topics'] = words_and_weights
+    return topic_dict
+
+
 def get_most_dominant_topic(mlPipelineDF):
-    """Obtain topic distribution per document - this is useful if we want to
-       assign a single dominant topic to each document.
-    """
+    """Obtain topic distribution per document"""
     @f.udf(t.IntegerType())
     def sort_indices(topicVectors):
         "Extract indices of topic weights and sort by max weight-value"
@@ -172,7 +181,7 @@ def split_distribution(df, mlModel, ldaModel):
 
     # Subset transformed DataFrame to obtain document-topic matrix
     transformedDFSubset = transformedDF.select(
-        '_id', 'url', 'publishedAt', 'outlet', 'title',
+        'id', 'url', 'timestamp', 'outlet', 'title',
         'topicDistribution', 'sourcesFemaleCount', 'sourcesMaleCount'
     )
     # Split topic distribution into individual columns
@@ -223,18 +232,6 @@ def groupby_outlet_gender_topics(femaleSourcesDF, maleSourcesDF):
     outletFemaleGroupedDF = femaleAgg.toDF(*colnames)
     outletMaleGroupedDF = maleAgg.toDF(*colnames)
     return outletFemaleGroupedDF, outletMaleGroupedDF
-
-
-def get_topic_summary_dict(topics):
-    """Reshape topics and model parameters as a JSON/dict object"""
-    words_and_weights = {}
-    # Add summary parameters to topic JSON
-    for num, data in enumerate(topics):
-        words_and_weights[str(num + 1)] = {}
-        words_and_weights[str(num + 1)]['name'] = ''
-        words_and_weights[str(num + 1)]['words'] = data
-
-    return words_and_weights
 
 
 def get_mean_outlet_dict(outletDF):
@@ -294,25 +291,42 @@ def get_male_dominant_sources(topicsDF, delta=1):
     return maleSourcesDF
 
 
-def update_db(collection, payload):
-    """Update individual JSON objects in the write collection on MongoDB.
+def top500_female_dominant(topicsDF):
+    """Store the subset of articles that have more female sources than male.
+       The resulting DataFrame is sorted in desending order of female sources.
     """
-    # Store the de-hyphenated date prefix as a unique document ID for MongoDB
-    id_str = prefix.replace("-", "")
-    # Write date to DB
-    try:
-        # Find and upsert unique date id based on the YYYYMM date format
-        collection.update_one({'_id': id_str}, {'$set': {'_id': id_str}}, upsert=True)
-        # Write topics
-        collection.find_one_and_update({'_id': id_str}, {'$set': payload})
-    except Exception as e:
-        log.error(f"Error: {e}")
+    sortedDF = topicsDF.drop('topicDistribution') \
+        .filter('sourcesFemaleCount - sourcesMaleCount >= 1') \
+        .orderBy(f.col("sourcesFemaleCount"), ascending=False).limit(500)
+    return sortedDF
 
 
-def train(db_connection, df):
-    preprocDF = run_spark_preproc_pipeline(df, STOPWORDS)
+def top500_male_dominant(topicsDF):
+    """Store the subset of articles that have more male sources than female.
+       The resulting DataFrame is sorted in desending order of male sources.
+    """
+    sortedDF = topicsDF.drop('topicDistribution') \
+        .filter('sourcesMaleCount - sourcesFemaleCount >= 1') \
+        .orderBy(f.col("sourcesMaleCount"), ascending=False).limit(500)
+    return sortedDF
+
+
+def write_gender_dominantDF(topicsDF, output_dir):
+    """Write CSV files containing the topic distribution based on dominant source gender."""
+    femaleDomDF = top500_female_dominant(topicsDF)
+    maleDomDF = top500_male_dominant(topicsDF)
+    # Write data to CSV
+    femaleDomDF.write.mode('overwrite').csv(output_dir, header=True)
+    maleDomDF.write.mode('append').csv(output_dir, header=True)
+
+
+def train():
+    # Read DataFrame and store metrics
+    df = spark.read.parquet(dataloc)
+    filteredDF = timestampRangeDF(df, begin_date, end_date)
+    preprocDF = run_spark_preproc_pipeline(filteredDF, STOPWORDS)
     # Run NLP and ML pipelines
-    nlpPipelineDF = run_nlp_pipeline(preprocDF)
+    nlpPipelineDF = run_nlp_pipeline(preprocDF).persist()
     article_count = nlpPipelineDF.count()
     mlModel, ldaModel = run_ml_pipeline(nlpPipelineDF, num_topics, max_iterations, vocabSize, minDF, maxDF)
 
@@ -324,8 +338,6 @@ def train(db_connection, df):
     # Group mean topic distribution by gender
     femaleSourcesDF = get_female_dominant_sources(topicsDF, delta=gender_delta)
     maleSourcesDF = get_male_dominant_sources(topicsDF, delta=gender_delta)
-    femaleDominantArticleCount, maleDominantArticleCount = femaleSourcesDF.count(), maleSourcesDF.count()
-    # Perform aggregation
     femaleTopicsDF, maleTopicsDF = groupby_gender_topics(femaleSourcesDF, maleSourcesDF)
     # Group mean topic distribution by outlet and gender
     outletFemaleDF, outletMaleDF = groupby_outlet_gender_topics(femaleSourcesDF, maleSourcesDF)
@@ -341,40 +353,32 @@ def train(db_connection, df):
         'maxDF': maxDF,
         'maxPerplexity': ldaPerplexity,
         'articleCount': article_count,
-        'femaleDominantArticleCount': femaleDominantArticleCount,
-        'maleDominantArticleCount': maleDominantArticleCount 
     }
 
     if save_model:
         # Save model (if required for later use)
-        mlModel.write().save("model{}.csv".format(prefix))
+        mlModel.write().save("{}_{}-model".format(prefix, suffix))
+        # Dominant topics
+        # splits = splitDF.drop('topicDistribution').toPandas()
+        # splits.to_csv("split-output.csv", index=False)
 
-    if save_topic_split:
-        if not os.path.exists("topic_split_csv"):
-            os.makedirs("topic_split_csv")
-        # Save the topic splits per article to CSV
-        splits = topicsDF.drop('topicDistribution').toPandas()
-        splits.to_csv("topic_split_csv/topicSplit_{}.csv".format(prefix), index=False)
-
-    # Get results
-    topic_dict = get_topic_summary_dict(topics)
-    outlet_topic_dict = get_mean_outlet_dict(outletDF)
-    gender_topic_dict = get_mean_gender_dict(femaleTopicsDF, maleTopicsDF)
+    # Store intermediate JSON
+    topic_dict = get_topic_summary_dict(topics, topic_params)
+    mean_outlet_dict = get_mean_outlet_dict(outletDF)
+    mean_gender_dict = get_mean_gender_dict(femaleTopicsDF, maleTopicsDF)
     outlet_female_dict = get_mean_outlet_gender_dict(outletFemaleDF)
     outlet_male_dict = get_mean_outlet_gender_dict(outletMaleDF)
     mean_outlet_gender_dict = {'female': outlet_female_dict, 'male': outlet_male_dict}
 
-    # Convert to a single JSON payload to write to DB
-    payload = {}
-    payload['params'] = topic_params
-    payload['topics'] = topic_dict
-    payload['perOutletTopics'] = outlet_topic_dict
-    payload['perGenderTopics'] = gender_topic_dict
-    payload['perOutletGenderTopics'] = mean_outlet_gender_dict
-    # Update DB
-    update_db(db_connection, payload)
-
-    log.info(f"\n***Processed {article_count} articles. Max upper bound on perplexity: {ldaPerplexity}***")
+    # Write results
+    write_json(topic_dict, "{}_{}-topic.json".format(prefix, suffix))
+    if store_outlet_log:
+        write_json(mean_outlet_dict, "{}_{}-outlet.json".format(prefix, suffix))
+    if store_gender_log:
+        write_json(mean_gender_dict, "{}_{}-gender.json".format(prefix, suffix))
+    if store_outlet_gender_log:
+        write_json(mean_outlet_gender_dict, "{}_{}-outlet-gender.json".format(prefix, suffix))
+    print("\n***Processed {} articles. Max upper bound on perplexity: {}***".format(article_count, ldaPerplexity))
 
 
 if __name__ == "__main__":
@@ -385,24 +389,15 @@ if __name__ == "__main__":
     parser.add_argument("--minDF", type=float, default=0.02, help="Min. term document frequency")
     parser.add_argument("--maxDF", type=float, default=0.8, help="Max. term document frequency")
     parser.add_argument("--partitions", type=int, default=100, help="Number of shuffle partitions in PySpark")
-    parser.add_argument("--begin_date", type=str, default=get_begin_date(), help="Begin date in YYYY-mm-dd format")
-    parser.add_argument("--end_date", type=str, default=get_end_date(), help="End date in YYYY-mm-dd format")
+    parser.add_argument("--begin_date", type=str, default="2020-01-01", help="Start date")
+    parser.add_argument("--end_date", type=str, default="2020-01-31", help="End date")
     parser.add_argument("--gender_delta", type=int, default=1, help="Define delta for male/female source-dominant articles")
+    parser.add_argument("--disable_outlet_log", action="store_false", help="Do not write log containing topic distribution per outlet")
+    parser.add_argument("--disable_gender_log", action="store_false", help="Do not write log containing topic distribution per gender")
+    parser.add_argument("--disable_outlet_gender_log", action="store_false", help="Do not write log containing topic distribution per outlet AND gender")
     parser.add_argument("--save_model", action="store_true", help="Save topic model trained on the given time-range's data")
-    parser.add_argument("--disable_topic_split", action="store_false", help="Save topic model split distribution as a CSV")
 
     args = vars(parser.parse_args())
-
-    spark = SparkSession.builder.appName("Topic model monthly") \
-        .config("spark.shuffle.io.maxRetries", 20) \
-        .config("spark.shuffle.io.retryWait", "20s") \
-        .config("spark.buffer.pageSize", "2m") \
-        .config("spark.sql.shuffle.partitions", args['partitions']) \
-        .getOrCreate()
-    sc = spark.sparkContext
-    log4jLogger = sc._jvm.org.apache.log4j
-    log = log4jLogger.LogManager.getLogger(__name__)
-
     # Rename inputs
     num_topics = args['topics']
     max_iterations = args['iter']
@@ -412,55 +407,30 @@ if __name__ == "__main__":
     begin_date = args['begin_date']
     end_date = args['end_date']
     gender_delta = args['gender_delta']
+    store_outlet_log = args['disable_outlet_log']
+    store_gender_log = args['disable_gender_log']
+    store_outlet_gender_log = args['disable_outlet_gender_log']
     save_model = args['save_model']
-    save_topic_split = args['disable_topic_split']
     # Store year and month for file prefix
-    prefix = datetime.datetime.strptime(begin_date, '%Y-%m-%d').strftime('%Y-%m')
+    prefix = datetime.strptime(begin_date, '%Y-%m-%d').strftime('%Y-%m-%d')
+    suffix = datetime.strptime(end_date, '%Y-%m-%d').strftime('%Y-%m-%d')
 
     # Read config
-    MONGO_ARGS = config['MONGO_ARGS']
-    READ_DB = config['DB']['READ_DB']
-    READ_COL = config['DB']['READ_COL']
-    WRITE_DB = config['DB']['WRITE_DB']
-    WRITE_COL = config['DB']['WRITE_COL']
-    OUTLETS = config['MODEL']['OUTLETS']
     STOPWORDS = config['MODEL']['STOPWORDS']
     LEMMAS = config['MODEL']['LEMMAS']
 
-    with MongoClient(**MONGO_ARGS) as connection:
-        read_collection = connection[READ_DB][READ_COL]
-        articles = read_collection.aggregate([
-            {
-                "$match": {
-                    "outlet": {"$in": OUTLETS},
-                    "publishedAt": {
-                        "$gte": convert_date(begin_date),
-                        "$lt": convert_date(end_date)}
-                }
-            },
-            {
-                "$project": {
-                    '_id': {'$toString': '$_id'}, 'url': 1, 'publishedAt': 1,
-                    'outlet': 1, 'title': 1, 'body': 1,
-                    'peopleFemaleCount': 1, 'peopleMaleCount': 1,
-                    'sourcesFemaleCount': 1, 'sourcesMaleCount': 1
-                }
-            }
-        ])
-
-        # Specify timezone as UTC to match with raw data on MongoDB!
-        spark.conf.set("spark.sql.session.timeZone", "UTC")
-        df_articles = spark.createDataFrame(list(articles))
-
-        # Train topic model and update DB
-        write_collection = connection[WRITE_DB][WRITE_COL]
-        train(write_collection, df_articles)
-        # Stop Spark
+    spark = SparkSession.builder \
+                        .appName("TopicModel-SparkNLP") \
+                        .config("spark.shuffle.io.maxRetries", 20) \
+                        .config("spark.shuffle.io.retryWait", "20s") \
+                        .config("spark.buffer.pageSize", "2m") \
+                        .config("spark.sql.shuffle.partitions", args['partitions']) \
+                        .getOrCreate()
+    sc = spark.sparkContext
+    # Train topic model
+    train()
+    # Stop Spark
     spark.stop()
 
-
-"""
-Example command:
-----------------
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 train.py --begin_date 2020-03-01 --end_date 2020-03-31
-"""
+    # Example run command
+    # spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 train_cc.py --begin_date 2020-01-01 --end_date 2020-01-31
