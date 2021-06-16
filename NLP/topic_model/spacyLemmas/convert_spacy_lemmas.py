@@ -6,6 +6,12 @@ import json
 from urllib.request import urlopen
 
 
+def get_ban_list():
+    """List of lemmas that we don't want from spaCy's default lookup list"""
+    banned_lemmas = ["datum"]
+    return banned_lemmas
+
+
 def get_spacy_lemmas():
     """Download most recent spaCy lemma dictionary from their GitHub repo."""
     spacy_lemma_url = "https://raw.githubusercontent.com/explosion/spacy-lookups-data/master/spacy_lookups_data/data/en_lemma_lookup.json"
@@ -29,13 +35,19 @@ def write_sparknlp_lemmas(spacy_lemmas):
     """Write out the lemmas as per Spark NLP's format:
     https://stackoverflow.com/a/57873365/1194761
     """
+    ban_list = get_ban_list()
     same_value_keys = get_same_value_keys(spacy_lemmas)
     with open('spacy_english_lemmas.txt', "w") as f:
         for key, values in same_value_keys.items():
-            # Only output values without special characters
-            alphabet_values = [val.lower() for val in values if val.isalpha()]
-            if key.isalpha():
-                f.write("{0} -> {0} {1}\n".format(key.lower(), ' '.join(list(alphabet_values))))
+            print(key, " -->", values)
+            if key in ban_list:
+                # Prevent lemmas that we banned from being included in the output lemma list for Spark
+                pass
+            else:
+                # Only output values without special characters
+                alphabet_values = [val.lower() for val in values if val.isalpha()]
+                if key.isalpha():
+                    f.write("{0} -> {0} {1}\n".format(key.lower(), ' '.join(list(alphabet_values))))
 
 
 def main():
