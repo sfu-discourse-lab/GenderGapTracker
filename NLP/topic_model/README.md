@@ -22,7 +22,7 @@ We only perform topic modelling on English language articles at present (In the 
 Because the data being passed from `pymongo` across the network is in the form of a list, there are finite restrictions on how large the dataset can be using this production script. It is recommended to **limit the time period of data being worked on to no more than one month** to avoid memory issues on the production VM.
 
 ### Output
-The production script `train.py` directly writes the results in the form of JSON objects to a new collection `topicModel` directly to MongoDB. This avoids having to maintain messy, external files containing results and allows us to continuously log each month's results in an organized, scalable manner.
+The production script `topic_model_mongo.py` directly writes the results in the form of JSON objects to a new collection `topicModel` on MongoDB. This avoids having to maintain messy, external files containing results and allows us to continuously log each month's results in an organized manner.
 
 ### Usage
 The begin/end dates for the last month are automatically calculated using Python's `datetime` module. A required input argument to Spark is the version of the Spark NLP library, used for lemmatization, so this is specified with the `spark-submit` command as shown below.
@@ -30,17 +30,12 @@ The begin/end dates for the last month are automatically calculated using Python
 Note that from February 2021 onwards, we have 24 GB of memory available on the topic VM instance that runs the topic model in production. As a result, we can afford to increase the allocated driver memory to **7 GB** rather than the default 1 GB. Also, we specify 4 executors, with 4 GB of memory each. The full command used to run the topic model in production is below.
 
 ```sh
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 \
-    --driver-memory 7G \
-    --executor-memory 4G \
-    --num-executors 4 \
-    train.py \
-    --partitions 200
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 topic_model_mongo.py
 ```
 
 Display all the optional arguments for topic model training as follows.
 ```
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 train.py --help
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.5 topic_model_mongo.py
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -62,8 +57,8 @@ optional arguments:
 
 ---
 
-## Option 2. Run using parquet files on Compute Canada
-Alternately, for experimentation on large data sizes or for testing new functionality, a standalone topic model script (`train_cc.py`) is provided, that runs on Compute Canada resources. Unlike the production version, this process is designed to be customizable, both in terms of data content/size, as well as the individual functions implemented. The below sections pertain only to the files `preproc_cc.py` and `train_cc.py` (Compute Canada).
+## Option 2. Run using parquet files
+Alternately, for experimentation on large data sizes or for testing new functionality, a standalone topic model script (`topic_model_json.py`) is provided, that runs locally or on a Spark cluster. Unlike the production version, this process is designed to be customizable, both in terms of data content/size, as well as the individual functions implemented. In our case, we ran all our experiments using the extensive resources of Compute Canada. The below sections pertain only to the files `preproc.py` and `topic_model_json.py`.
 
 Because Compute Canada's cluster has much more resources, it is possible to train topic models on **much more data** over much longer periods of time (1-1.5 years). To avoid memory constraints during data transfer, the standalone version of the topic model trainer runs on a static data dump (in parquet format). This allows us to work with arbitrarily large time periods with almost unbounded amounts of data during training -- all we would do is scale up the compute requirements as more data is being worked on.
 
@@ -125,27 +120,14 @@ Topic modelling is an experimental process that requires careful parameter and s
 To train an LDA topic model on the filtered data for articles in the period **November 1, 2019** and **January 31, 2020**, use the below command.
 
 ```sh
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 \
-    --driver-memory 16G \
-    --executor-memory 16G \
-    --num-executors 16 \
-    --executor-cores 4 \
-    train_cc.py \
-    --topics 15 \
-    --iter 100 \
-    --vocab 5000 \
-    --minDF 0.02 \
-    --maxDF 0.8 \
-    --partitions 200 \
-    --begin_date 2019-11-01 \
-    --end_date 2020-01-31
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 --driver-memory 16G --executor-memory 16G --num-executors 16 --executor-cores 4 topic_model_json.py --topics 15 --iter 100 --vocab 5000 --minDF 0.02 --maxDF 0.8 --partitions 100 --start 2019-11-01 --end 2020-01-31
 ```
 
 #### Optional Python Arguments
 Run the below command to see the optional Python arguments for the training script.
 
 ```
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 train_cc.py --help
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 topic_model_json.py --help
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -173,29 +155,13 @@ optional arguments:
 It is recommended to run the topic model training script using the default values for all the arguments **except** the start and end dates:
 
 ```sh
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 \
-    --driver-memory 16G \
-    --executor-memory 16G \
-    --num-executors 16 \
-    --executor-cores 4 \
-    train_cc.py \
-    --begin_date 2020-01-01 \
-    --end_date 2020-01-31
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 --driver-memory 16G --executor-memory 16G --num-executors 16 --executor-cores 4 topic_model_json.py --start 2020-01-01 --end 2020-01-31
 ```
 
 To run the same case without writing out the mean topic distribution per outlet/gender, use the appropriate boolean arguments to disable them.
 
 ```sh
-spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 \
-    --driver-memory 16G \
-    --executor-memory 16G \
-    --num-executors 16 \
-    --executor-cores 4 \
-    train_cc.py \
-    --begin_date 2020-01-01 \
-    --end_date 2020-01-31 \
-    --disable_outlet_log \
-    --disable_gender_log
+spark-submit --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.4.0 --driver-memory 16G --executor-memory 16G --num-executors 16 --executor-cores 4 topic_model_json.py --start 2020-01-01 --end 2020-01-31 --disable_outlet_log --disable_gender_log
 ```
 
 _**NOTE**_: The topic log (containing topic words, weights and the model parameters used) is *always* written out, since this is the whole point of the training routine.
