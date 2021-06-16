@@ -10,7 +10,7 @@ The Gender Gap Tracker is a collaboration between [Informed Opinions](https://in
 
 ## Publications
 * Asr FT, Mazraeh M, Lopes A, Gautam V, Gonzales J, Rao P, Taboada M. (2021) The Gender Gap Tracker: Using Natural Language Processing to measure gender bias in media. *PLoS ONE 16(1): e0245533*. https://doi.org/10.1371/journal.pone.0245533
-* Rao P, Taboada M. (2021), Gender bias in the news: A scalable topic modelling and visualization framework. *Frontiers Artif. Intell*. https://doi.org/10.3389/frai.2021.664737
+* Rao P, Taboada M. (2021), Gender bias in the news: A scalable topic modelling and visualization framework. *Frontiers in Artificial Intelligence, 4(82)*. https://doi.org/10.3389/frai.2021.664737
 
 ## Contributors
 
