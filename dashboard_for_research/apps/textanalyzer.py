@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from dash_table import DataTable
 from server import app, spacy_lang, logger
@@ -54,6 +55,13 @@ def layout():
                      html.Button(id='reset', n_clicks=0, children='Reset', style={'backgroundColor': 'white'})],
                      style={'display': 'flex', 'justifyContent': 'center'}),
                 html.Br(),
+                dbc.Alert(
+                    "Text sample is too long! Please submit smaller chunks, each less than 20,000 characters in length.",
+                    color="danger",
+                    id="alert-auto",
+                    is_open=False,
+                    dismissable=True,
+                ),
                 html.Div([
                     dcc.Loading(
                         id='loading-progress-1',
@@ -90,24 +98,32 @@ def layout():
 # ========== Callbacks ================
 
 @app.callback([Output('sources-and-people-data', 'data'),
-               Output('quote-data', 'data')],
+               Output('quote-data', 'data'),
+               Output("alert-auto", "is_open")],
               [Input('submit', 'n_clicks'),
                Input('reset', 'n_clicks')],
               [State('text-input', 'value')])
 def update_people_data(submit_button, reset_button, input_text):
     """Return the male, female and unknown sources from the NLP function call"""
     ctx = dash.callback_context
+    empty_people = {'female': [], 'male': [], 'unknown': []}  # empty value for people and sources
+    empty_quotes = [{'quote': '', 'speaker': ''}]   # empty value for quotes and speakers
     # Empty input text or reset button click returns nothing
     if not input_text or "reset" in ctx.triggered[0]["prop_id"]:
-        empty_people = {'female': [], 'male': [], 'unknown': []}  # empty value for people and sources
-        empty_quotes = [{'quote': '', 'speaker': ''}]   # empty value for quotes and speakers
-        return {'sources': empty_people, 'people': empty_people}, empty_quotes
+        return {'sources': empty_people, 'people': empty_people}, empty_quotes, False
     else:
-        # Extract quotes and person named entities from input text
-        people, sources, quotes_and_sources = extract_quotes_and_entities(input_text)
-        # Extract people mentioned and quoted sources from the named entities
-        sources_and_people = get_sources_and_people(people, sources)
-        return sources_and_people, quotes_and_sources
+        flag = False
+        if len(input_text) > 20_000:
+            # If the input text is too long, provide an error message to the user.
+            sources_and_people = {'sources': empty_people, 'people': empty_people}
+            quotes_and_sources = empty_quotes
+            flag = True
+        else:
+            # Extract quotes and person named entities from input text
+            people, sources, quotes_and_sources = extract_quotes_and_entities(input_text)
+            # Extract people mentioned and quoted sources from the named entities
+            sources_and_people = get_sources_and_people(people, sources)
+        return sources_and_people, quotes_and_sources, flag
 
 
 @app.callback(Output('text-input', 'value'), [Input('reset', 'n_clicks')])

@@ -124,13 +124,16 @@ def layout():
             html.H2('Monthly Trends'),
             dcc.Markdown('''
                 In this section, we visualize monthly trends related to top-quoted sources.
-                The example below shows how we observed a steep increase in the
-                number of times Bonnie Henry (Provincial Health Officer of British Columbia) was
-                quoted since the start of the COVID-19 pandemic. Interestingly, the number of times
-                Theresa Tam (Canada's Chief Public Health Officer) was quoted dropped in June/July 2020, while
-                Bonnie Henry's quote count remained high.
+                The sample chart below shows how we observed a steep decline in the
+                number of times former U.S. President Donald Trump was quoted in Canadian media,
+                following his defeat to Joe Biden in the November 2020 elections. The sharp rise in
+                the number of quotes for both men in January 2021 is likely due to the extensive media
+                commentary following [the storming of the U.S. Capitol by rioters](https://www.cbc.ca/news/politics/riots-washington-capitol-hill-trudeau-trump-1.5866237),
+                [the ensuing presidential impeachment trial](https://www.ctvnews.ca/world/america-votes/democrats-plan-lightning-trump-impeachment-want-him-out-now-1.5258961),
+                and [Donald Trump's ban from several social media platforms](https://www.cbc.ca/news/business/facebook-youtube-pull-trump-video-capitol-protest-1.5863972).
 
-                To make a selection, begin by typing in a name into the menu below (autocomplete
+                To compare similar trends for other notable individuals that are regularly quoted in the news,
+                begin by typing in a name into the menu below (autocomplete 
                 will detect similar names). Selections can be removed by clicking the 'x' button
                 on a given name.
             '''),
@@ -138,7 +141,7 @@ def layout():
                 dcc.Dropdown(
                     id='multi-dropdown',
                     options=[{'label': name, 'value': name} for name in names],
-                    value=["Bonnie Henry", "Theresa Tam"],
+                    value=["Donald Trump", "Joe Biden"],
                     multi=True,
                 ),
                 style={'padding': 5},
@@ -150,11 +153,11 @@ def layout():
                     children=[html.Div(dcc.Graph(id='line-chart'), className='chart')],
                 ),
             ),
+            html.H5('Disclaimer'),
             dcc.Markdown('''
-                The data shown in the line chart has been reduced to allow for faster response
-                times. We only track the number of quotes for those people who appeared in the **top 50**
-                female/male sources in any given month. As a result, only prominent, public-facing
-                individuals are likely to feature in the drop-down selection menu.
+                To allow for faster response times, we only count and show monthly trends of quote counts for 
+                people who appeared in the top 50 female/male sources in any given month. As a result,
+                only prominent, **public-facing** individuals are likely to feature in the drop-down selection menu.
             '''),
         ])
     ]

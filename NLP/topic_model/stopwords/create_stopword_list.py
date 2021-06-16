@@ -51,28 +51,31 @@ if __name__ == "__main__":
 
     # Create custom word lists depending on the class of words seen in the data
     url_terms = ['href', 'http', 'https', 'src', 'twsrc', '5etfw', 'ref', 'com', 'cbc',
-                 'ctv', 'star']
+                 'ctv', 'star', '5127en', 'httpstco', 'www']
+    # Don't take 'wed', 'sat' and 'sun' because they are also normal words
     days_of_the_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-                        'saturday', 'sunday']
+                        'saturday', 'sunday', 'mon', 'tue', 'thu', 'fri']                    
     months_of_the_year = ['january', 'february', 'march', 'april', 'may', 'june', 'july',
-                          'august', 'september', 'october', 'november', 'december']
-    years = ["2018", "2019", "2020", "2021"]
+                          'august', 'september', 'october', 'november', 'december', 'jan',
+                          'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct',
+                          'nov', 'dec']
+    years = ["2018", "2019", "2020", "2021", "2022", "2023"]
     time_periods = ['minute', 'minutes', 'hour', 'hours', 'day', 'days', 'week', 'weeks',
                     'month', 'months', 'year', 'years']
     time_related = ['yesterday', 'today', 'tomorrow', 'day', 'night', 'morning',
                     'afternoon', 'evening', 'edt', 'est', 'pst', 'pdt', 'time', 'times']
-    common_words = ['press', 'news', 'report', 'page', 'user', 'twitter', 'facebook',
-                    'email', 'file', 'video', 'pic', 'photo', 'online', 'social', 'media',
+    common_words = ['press', 'news', 'report', 'page', 'user', 'reuters', 'email', 'browser',
+                    'file', 'files', 'video', 'pic', 'photo', 'online', 'social', 'media', 'article',
                     'group', 'inbox', 'item', 'advertisement', 'world', 'store', 'story',
-                    'life', 'family', 'people', 'man', 'woman', 'friend',
-                    'friends']
-    social_media = ['twitter', 'facebook', 'google', 'gmail', 'video', 'photo', 'image',
-                    'user', 'social', 'media', 'page', 'online', 'live', 'stream', 'post',
-                    'app']
+                    'life', 'family', 'people', 'man', 'woman', 'friend', 'friends']
+    social_media = ['twitter', 'facebook', 'google', 'gmail', 'linkedin', 'pinterest', 'getty',
+                    'video', 'photo', 'image', 'images', 'user', 'social', 'media', 'newsletter',
+                    'subscribe', 'page', 'online', 'live', 'stream', 'post', 'app', 'postmedia']
     light_verb_roots = ['call', 'click', 'continue', 'comment', 'do', 'feel', 'find',
                         'give', 'get', 'have', 'include', 'like', 'live', 'love', 'make',
                         'post', 'read', 'say', 'speak', 'send', 'share', 'show', 'sign',
-                        'tag', 'take', 'tell', 'think', 'update', 'work', 'write']
+                        'tag', 'take', 'tell', 'think', 'update', 'work', 'write', 'join',
+                        'view', 'load']
 
     # Convert light verb roots to all its forms using lemma lookup
     light_verbs_full = lookup_verbs(light_verb_roots, spacy_lemmas)
