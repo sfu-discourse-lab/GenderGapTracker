@@ -6,26 +6,25 @@ This section contains the code we used for scraping news article content from va
 ### Installation
 We use the following tools for data scraping and storage.
 
+ * MongoDB: Installation instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
+ * Install Python 3.6+ and follow the below instructions to prepare the Python environment. Make sure that `gcc`, `build-essential` and `python3-devel` (on Red Hat/CentOS), or `python3-dev` (on ubuntu) are installed on the system. Also, install `python3-venv` for managing virtual environments.
+ * Newspaper3k: We use the [newspaper library](https://github.com/codelucas/newspaper) to help in the process of collecting data. However, we customized this library for our own purposes, hosted at: https://github.com/aleaugustoplus/newspaper
+     * Install the customized newspaper library using the `requirements.txt` file in [this location](https://github.com/aleaugustoplus/newspaper/blob/master/requirements.txt).
+     * `pip install -r requirements.txt`
 
-* MongoDB: Installation instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
-* Python 3.6+: Make sure that `gcc`, `build-essential` and `python36u-devel` packages are also installed on the system.
-* Newspaper3k: We use the [newspaper library](https://github.com/codelucas/newspaper) to help in the process of collecting data. However, we customized this library for our own purposes, hosted at: https://github.com/aleaugustoplus/newspaper
-  * Clone this repo to the root directory of the scraper code
-  * Install the dependencies for the customized newspaper library using the requirements.txt file as shown [in the repo](https://github.com/aleaugustoplus/newspaper/blob/master/requirements.txt).
-  * ```pip install -r requirements.txt```
-
-
-### News Sources
-We currently scrape news articles from 13 different organizations' websites, in both French and English.
+## News Sources
+We scrape news articles from the following Canadian news organizations' websites.
 
 #### English
 1. CBC News
 2. CTV News
 3. Global News
-4. Huffington Post
+4. HuffPost Canada<sup>*</sup>
 5. National Post
 6. The Globe And Mail
 7. The Star
+
+> <sup>*</sup> HuffPost Canada stopped publishing articles in March 2021. As a result, our database only contains articles from this outlet until February 2021.
 
 #### French
 1. Journal De Montreal
@@ -35,7 +34,7 @@ We currently scrape news articles from 13 different organizations' websites, in 
 5. Radio Canada
 6. TVA News
 
-Each outlet's news content can be retrieved from their RSS feeds by running the required media collectors.
+Each outlet's news content is retrieved from their RSS feeds by running the required media collectors. Some examples of usage are shown below.
 
 ### Example of usage for individual scrapers
 
