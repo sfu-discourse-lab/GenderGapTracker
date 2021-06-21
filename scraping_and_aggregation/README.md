@@ -13,7 +13,7 @@ We use the following tools for data scraping and storage.
      * `pip install -r requirements.txt`
 
 ## News Sources
-We scrape news articles from the following Canadian news organizations' websites.
+We scrape news articles from the following Canadian news organizations' websites. The articles in our database date back to October 2018.
 
 #### English
 1. CBC News
