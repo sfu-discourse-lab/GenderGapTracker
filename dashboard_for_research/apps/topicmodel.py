@@ -175,11 +175,12 @@ def layout():
             dcc.Markdown(
                 dangerously_allow_html=True,
                 children=('''
-                Our goal in this section is to analyze whether female and male sources are more likely
-                to be associated with specific topics in the news. We utilize data scraped from six<sup>1</sup>
-                Canadian news organizations' websites, following which we identify the gender of those
-                quoted (sources). We then perform large-scale topic discovery on each month's data using
-                Latent Dirichlet Allocation (LDA), as shown below.
+                Our goal in this section is to analyze whether women and men quoted in
+                the news are more likely to be associated with specific topics. We
+                utilize data scraped from six<sup>1</sup> Canadian news organizations'
+                websites, following which we identify the gender of those quoted
+                (sources). We then perform large-scale topic discovery on each month's
+                data using Latent Dirichlet Allocation (LDA), as shown below.
             '''))],
         ),
         html.Div(html.Img(src="/static/topic-pipeline-flowchart-1.png", style={'width': '100%'})),
@@ -239,14 +240,15 @@ def layout():
         html.Div([dcc.Graph(id='outlet-heatmap')]),
         html.Div(html.Img(src="/static/topic-pipeline-flowchart-2.png", style={'width': '100%'})),
         dcc.Markdown('''
-            Once we identify topics, we calculate an aggregated quantity that we call *gender prominence*,
-            which is a measure that characterizes whether a given topic (on average) featured more
-            prominently in articles that quote one gender more frequently than they do the other.
-            
-            To do this, we separate our news corpus for the given month into two smaller corpora - one 
-            with articles that contain majority-female sources (at least one more female source than male),
-            and the other with articles that contain majority-male sources. These corpora are termed the
-            "female corpus" and "male corpus" respectively.
+            Once we identify topics, we calculate an aggregated quantity that we call
+            *gender prominence*, which is a measure that characterizes whether a given
+            topic (on average) featured more prominently in articles that quote one
+            gender more frequently than they do the other.
+
+            To do this, we separate our news corpus for the given month into two smaller
+            corpora - one with articles that contain majority-women sources (at least
+            one more woman quoted than the number of men quoted), and the other with
+            articles that contain majority-men sources.
         '''),
         html.Br(),
         # html.H4('Topics and gender representation among sources'),
@@ -258,19 +260,19 @@ def layout():
             dcc.Graph(id='outlet-gender-heatmap'),
             dcc.Markdown('''
                 Topics that are red exhibit 'female prominence', i.e., they are topics
-                for which the mean topic intensity is much greater in the female corpus than
-                it is in the male corpus. The opposite is true for topics that exhibit 'male prominence'
-                (shown in blue).
+                for which the mean topic intensity is much greater in the corpus that
+                quoted more women than men. The opposite is true for topics that exhibit
+                'male prominence' (shown in blue).
             '''),
             html.Br(),
             html.H5('''
-                Which topics were covered more extensively in the female corpus?
+                Which topics were covered more extensively in the corpus that quoted more women than men?
             '''),
             html.Div(id='female-corpus-stats'),
             dcc.Graph(id='female-topic-bars'),
             html.Br(),
             html.H5('''
-                Which topics were covered more extensively in the male corpus?
+                Which topics were covered more extensively in the corpus that quoted more men than women?
             '''),
             html.Div(id='male-corpus-stats'),
             dcc.Graph(id='male-topic-bars'),
@@ -312,8 +314,9 @@ def display_corpus_stats(data, date_val):
     female_corpus_size = data['params']['femaleDominantArticleCount']
     male_corpus_size = data['params']['maleDominantArticleCount']
     display_text = f"""
-        In {num2str_month(date_val)}, there were {female_corpus_size:,} articles in the 
-        female corpus, and {male_corpus_size:,} articles in the male corpus (across all outlets).
+        In {num2str_month(date_val)}, there were {female_corpus_size:,} articles in the
+        corpus that quoted more women than men, and {male_corpus_size:,} in the
+        corpus that quoted more men than women.
     """
     return dcc.Markdown(display_text)
 
@@ -324,8 +327,8 @@ def display_corpus_stats(data, date_val):
 def display_female_corpus_stats(data, date_val):
     female_corpus_size = data['params']['femaleDominantArticleCount']
     display_text = f"""
-        In {num2str_month(date_val)}, there were {female_corpus_size:,} articles in the 
-        female corpus (across all outlets).
+        In {num2str_month(date_val)}, there were {female_corpus_size:,} articles in the
+        corpus that quoted more women than men.
     """
     return dcc.Markdown(display_text)
 
@@ -336,8 +339,8 @@ def display_female_corpus_stats(data, date_val):
 def display_male_corpus_stats(data, date_val):
     male_corpus_size = data['params']['maleDominantArticleCount']
     display_text = f"""
-        In {num2str_month(date_val)}, there were {male_corpus_size:,} articles in the 
-        male corpus (across all outlets).
+        In {num2str_month(date_val)}, there were {male_corpus_size:,} articles in the
+        corpus that quoted more men than women.
     """
     return dcc.Markdown(display_text)
 

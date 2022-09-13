@@ -1,0 +1,70 @@
+{"label": "LOC", "pattern": "Niagara Falls"}
+{"label": "LOC", "pattern": "Rogers Place"}
+{"label": "LOC", "pattern": "Preah Sihanouk"}
+{"label": "LOC", "pattern": "Nova Scotia"}
+{"label": "LOC", "pattern": "Don Mills"}
+{"label": "LOC", "pattern": "Maple Ridge"}
+{"label": "LOC", "pattern": "Kneehill County"}
+{"label": "LOC", "pattern": "La Loche"}
+{"label": "LOC", "pattern": "Alberta Parks"}
+{"label": "LOC", "pattern": "Sioux Lookout"}
+{"label": "LOC", "pattern": "Rio de Janeiro"}
+{"label": "LOC", "pattern": "Quintana Roo"}
+{"label": "LOC", "pattern": "High Level"}
+{"label": "LOC", "pattern": "Red Deer"}
+{"label": "LOC", "pattern": [{"LOWER": "saint"}, {"LOWER": "john"}]}
+{"label": "LOC", "pattern": "Yves Paradis de la Cour du Québec"}
+{"label": "LOC", "pattern": "Québec"}
+{"label": "LOC", "pattern": "Ouje Bougoumou"}
+{"label": "ORG", "pattern": "OC Transpo"}
+{"label": "ORG", "pattern": "Rystad Energy"}
+{"label": "ORG", "pattern": "San Marcos"}
+{"label": "ORG", "pattern": "Yeni Safak"}
+{"label": "ORG", "pattern": "New Yorker"}
+{"label": "ORG", "pattern": "Maple Leafs"}
+{"label": "ORG", "pattern": "Canada Goose"}
+{"label": "ORG", "pattern": "Moose Jaw"}
+{"label": "ORG", "pattern": "Tim Hortons"}
+{"label": "ORG", "pattern": "Irving Oil"}
+{"label": "ORG", "pattern": "Kinder Morgan"}
+{"label": "ORG", "pattern": "Der Spiegel"}
+{"label": "ORG", "pattern": "Husky Energy"}
+{"label": "ORG", "pattern": "Nesbitt Burns"}
+{"label": "ORG", "pattern": "Royal LePage"}
+{"label": "ORG", "pattern": "Royal Lepage"}
+{"label": "ORG", "pattern": "Accueil Bonneau"}
+{"label": "ORG", "pattern": "Dickinson Wright"}
+{"label": "ORG", "pattern": "Taquan Air"}
+{"label": "ORG", "pattern": "Salmar Theatres"}
+{"label": "ORG", "pattern": "Walt Disney"}
+{"label": "ORG", "pattern": "McCarthy Tétrault"}
+{"label": "ORG", "pattern": "Helsingin Sanomat"}
+{"label": "ORG", "pattern": "Tk'emlúps te Secwépemc"}
+{"label": "ORG", "pattern": "Tk emlúps te Secwepemc"}
+{"label": "ORG", "pattern": "Tk emlups te Secwepemc First Nation"}
+{"label": "ORG", "pattern": "Tk'emlups te Secwepemc First Nation"}
+{"label": "ORG", "pattern": [{"LOWER": "la presse"}]}
+{"label": "ORG", "pattern": [{"LOWER": "la presse canadienne"}]}
+{"label": "ORG", "pattern": [{"LOWER": "ctvnews"}]}
+{"label": "ORG", "pattern": [{"LOWER": "ctvnews.ca"}]}
+{"label": "ORG", "pattern": [{"LOWER": "b"}, {"LOWER": "nai"}, {"LOWER": "brith"}]}
+{"label": "ORG", "pattern": [{"LOWER": "b'nai"}, {"LOWER": "brith"}]}
+{"label": "ORG", "pattern": "Cordé Électrique"}
+{"label": "ORG", "pattern": "Cogeco Connexion"}
+{"label": "ORG", "pattern": "Delpharm Industrie"}
+{"label": "ORG", "pattern": "Unither Bioélectronique"}
+{"label": "ORG", "pattern": "Systèmes Danfreight"}
+{"label": "MISC", "pattern": [{"LOWER": "mi'kmaw"}]}
+{"label": "MISC", "pattern": "Bergdorf Goodman"}
+{"label": "MISC", "pattern": "Yuk Yuk"}
+{"label": "MISC", "pattern": [{"LOWER": "wet'suwet'en"}]}
+{"label": "MISC", "pattern": "Vuntut Gwitchin"}
+{"label": "MISC", "pattern": "Wahbung Abinoonjiiag"}
+{"label": "MISC", "pattern": "Manitoba Keewatinowi Okimakanak"}
+{"label": "MISC", "pattern": "Keewatinowi Okimakanak"}
+{"label": "MISC", "pattern": "Selon"}
+{"label": "MISC", "pattern": "Brent de la mer du Nord"}
+{"label": "MISC", "pattern": "Père Noël"}
+{"label": "PER", "pattern": "Caroline"}
+{"label": "PER", "pattern": "Virginie"}
+{"label": "PER", "pattern": "Georges Washington"}

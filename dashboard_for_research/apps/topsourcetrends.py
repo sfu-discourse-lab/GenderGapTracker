@@ -87,6 +87,7 @@ def plot_lines(df):
                 automargin=True,
                 tickangle=30,
                 ticks='outside',
+                tickmode='auto',
                 gridcolor='rgb(240, 240, 240)',
             ),
             yaxis=dict(
@@ -104,6 +105,8 @@ def plot_lines(df):
                 bgcolor='rgba(255, 255, 255, 0.7)',
             ),
         )
+        # Ensure we don't crowd the x-axis with too many ticklabels
+        fig.update_xaxes(nticks=10)
         return fig
     else:
         return {}
@@ -121,11 +124,11 @@ def layout():
 
     children_list = [
         html.Div([
-            html.H2('Monthly Trends'),
+            html.H2('Monthly trends: People quoted'),
             dcc.Markdown('''
-                In this section, we visualize monthly trends related to top-quoted sources.
+                In this section, we visualize historical trends related to the top women/men quoted, on a monthly basis.
                 The sample chart below shows how we observed a steep decline in the
-                number of times former U.S. President Donald Trump was quoted in Canadian media,
+                number of times former U.S. President Donald Trump was quoted per month in Canadian media,
                 following his defeat to Joe Biden in the November 2020 elections. The sharp rise in
                 the number of quotes for both men in January 2021 is likely due to the extensive media
                 commentary following [the storming of the U.S. Capitol by rioters](https://www.cbc.ca/news/politics/riots-washington-capitol-hill-trudeau-trump-1.5866237),
@@ -156,7 +159,7 @@ def layout():
             html.H5('Disclaimer'),
             dcc.Markdown('''
                 To allow for faster response times, we only count and show monthly trends of quote counts for 
-                people who appeared in the top 50 female/male sources in any given month. As a result,
+                people who appeared in the top 50 most frequently quoted women/men in any given month. As a result,
                 only prominent, **public-facing** individuals are likely to feature in the drop-down selection menu.
             '''),
         ])
