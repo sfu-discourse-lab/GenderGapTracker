@@ -14,15 +14,21 @@ from server import app, spacy_lang, logger
 # NLP modules
 import sys
 import os
-sys.path.append(os.path.abspath('../NLP/main'))
-from utils import preprocess_text
-from quote_extractor import extract_quotes
-from entity_gender_annotator import (
-    merge_nes, remove_invalid_nes, quote_assign
-)
+import requests
+
+sys.path.append(os.path.abspath('../nlp/english'))
+import utils
+from config import config
+from quote_extractor import QuoteExtractor
+from entity_gender_annotator import EntityGenderAnnotator
 
 GENDER_RECOGNITION_SERVICE = 'http://{}:{}'.format('localhost', 5000)
-
+config["spacy_lang"] = spacy_lang
+config["session"] = requests.Session()
+config["NLP"]["QUOTE_VERBS"] = os.path.abspath('../nlp/english/rules/quote_verb_list.txt')
+config["NLP"]["AUTHOR_BLOCKLIST"] = os.path.abspath('../nlp/english/rules/author_blocklist.txt')
+extractor = QuoteExtractor(config)
+annotator = EntityGenderAnnotator(config)
 
 # ========== App Layout ================
 
@@ -280,7 +286,7 @@ def collect_quotes(quotes):
         # the conditions are relaxed and we accept the quote with a blank speaker name
         if q.get('named_entity_type') == 'PERSON' or q.get('quote_type') == 'Heuristic':
             speaker = q.get('named_entity', "")
-            quote = preprocess_text(q.get('quote', ""))
+            quote = utils.preprocess_text(q.get('quote', ""))
             collection.append({'speaker': speaker, 'quote': quote})
     return collection
 
@@ -291,7 +297,7 @@ def people_by_gender(name_dict, category):
     male_names = format_names(name_dict['male'])
     unknown_names = format_names(name_dict['unknown'])
     names = [female_names, male_names, unknown_names]
-    genders = ['female', 'male', 'unknown']
+    genders = ['woman', 'man', 'unknown']
     # Create a list of records to store in a table
     records = []
     for gender, name_list in zip(genders, names):
@@ -302,15 +308,17 @@ def people_by_gender(name_dict, category):
 
 def extract_quotes_and_entities(sample_text):
     """Convert raw text to a spaCy doc object and return its named entities and quotes"""
-    text = preprocess_text(str(sample_text))
+    text = utils.preprocess_text(sample_text)
     doc = spacy_lang(text)
-    quotes = extract_quotes(doc_id="temp000", doc=doc, write_tree=False)
-    unified_nes = merge_nes(doc)
-    named_entities = remove_invalid_nes(unified_nes)
+    quotes = extractor.extract_quotes(doc)
+    annotation = annotator.run(text, [], quotes, "")
+    people = annotation["people"]
+    sources = annotation["sources"]
+    unified_nes = annotator.merge_nes(doc)
+    named_entities = annotator.remove_invalid_nes(unified_nes)
     # Get list of people and sources, along with a combined list of all quotes
-    people = list(named_entities.keys())
     # Obtain gender of speakers from condensed coreference clusters
-    _, _, all_quotes = quote_assign(named_entities, quotes, doc)
+    _, _, all_quotes = annotator.quote_assign(named_entities, quotes, doc)
     quotes_and_sources = collect_quotes(all_quotes)
     # sort alphabetically based on speaker name
     quotes_and_sources = sorted(quotes_and_sources, key=lambda x: x['speaker'], reverse=True)
@@ -318,7 +326,6 @@ def extract_quotes_and_entities(sample_text):
     sources = list(set([person['speaker'] for person in quotes_and_sources]))
     # Merge list of people and sources (in case there is a mismatch) to get full list of people
     people = list(set(people).union(set(sources)))
-
     return people, sources, quotes_and_sources
 
 
@@ -362,7 +369,7 @@ def get_pie_subplots(data):
     empty_annotations = [dict(text='', showarrow=False), dict(text='', showarrow=False)]
     trace1 = go.Pie(
         values=source_values,
-        labels=['Female', 'Male', 'Unknown'],
+        labels=['Women', 'Men', 'Unknown'],
         name='Sources',
         marker=dict(
             dict(
@@ -380,7 +387,7 @@ def get_pie_subplots(data):
 
     trace2 = go.Pie(
         values=people_values,
-        labels=['Female', 'Male', 'Unknown'],
+        labels=['Women', 'Men', 'Unknown'],
         name='People',
         marker=dict(
             dict(
@@ -407,8 +414,8 @@ def get_pie_subplots(data):
         legend=dict(orientation='h', x=0.25, y=-0.1, font=dict(size=16)),
         margin=dict(l=20, r=80, t=50, b=50),
         annotations=[
-            dict(text='Percentage of female and male sources', x=0.0, y=1.15, showarrow=False, font=dict(size=16)),
-            dict(text='Percentage of female and male mentions', x=1.0, y=1.15, showarrow=False, font=dict(size=16)),
+            dict(text='Proportion of women/men quoted', x=0.05, y=1.15, showarrow=False, font=dict(size=16)),
+            dict(text='Proportion of women/men mentioned', x=0.96, y=1.15, showarrow=False, font=dict(size=16)),
         ] if not data['people'] == {'female': [], 'male': [], 'unknown': []} else empty_annotations
     )
     return fig

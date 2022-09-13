@@ -40,14 +40,14 @@ There are two main dashboards deployed and described in this README:
 
 
 ## Password-protection for write dashboard
-The write dashboard is deployed as an admin page with password protection - this is mainly because exposing write-functionality on a public URL to unprivileged users can be a serious security risk. All code for the write-dashboard is separated from the read dashboard, in the [admin](https://github.com/maitetaboada/WomenInMedia/tree/master/dashboard_for_research/admin) directory.
+The write dashboard is deployed as an admin page with password protection - this is mainly because exposing write-functionality on a public URL to unprivileged users can be a serious security risk. All code for the write-dashboard is separated from the read dashboard, in the `admin/` directory, and is not shared publicly in this repo.
 
 
 ## Installation
-First, set up a virtual environment and install the dependencies from requirements.txt:
+First, set up a virtual environment and install the dependencies from `requirements.txt`:
 
 ```sh
-python3 -m venv GRIM-3
+python3 -m venv .venv
 source GRIM-3/bin/activate
 pip3 install -r requirements.txt
 ```
@@ -118,6 +118,7 @@ Sarah Huckabee Sanders, Sarah Sanders
 
 The first name in each line represents the primary name, and the remaining names (**separated by commas**) are the various aliases that different outlets use for that person. We can extend this list as much as required, and the corresponding dashboard app self-updates to aggregate the quote counts, merging instances of each alias to produce more accurate statistics.
 
+
 #### Ensure Dash is serving custom JS locally
 To ensure that Dash serves the JavaScript file from the local directory during deployment, ensure that the server config is set to `serve_locally` as shown below.
 
@@ -126,11 +127,10 @@ app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 ```
-Once these steps are followed, the server should begin tracking visits to the dashboard (it takes 1-2 days for stats to begin showing up on the Google Analytics account).
 
 
 ## Troubleshooting
-Deployment of this application is slighly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
+Deployment of this application is slightly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
 
 Due to an [issue with circular imports](https://dash.plotly.com/urls) when defining multi-page applications in Plotly Dash, the Flask server object must be created in a separate file, which we call  `server.py`:
 

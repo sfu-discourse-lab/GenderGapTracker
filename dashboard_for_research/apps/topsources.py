@@ -176,7 +176,7 @@ def get_lollipop_plot(stats):
         marker=dict(size=10, color='rgb(175, 24, 88)'),
         hoverinfo='x+text',
         hovertemplate='%{text}<br>%{x} quotes<extra></extra>',
-        name='Female sources',
+        name='Women quoted',
     )
     # Male dots
     data2 = go.Scatter(
@@ -189,7 +189,7 @@ def get_lollipop_plot(stats):
         marker=dict(size=10, color='rgb(0, 77, 114)'),
         hoverinfo='x+text',
         hovertemplate='%{text}<br>%{x} quotes<extra></extra>',
-        name='Male sources',
+        name='Men quoted',
     )
     # Horizontal line connector
     shapes = [dict(
@@ -252,10 +252,10 @@ def layout():
 
     children_list = [
         html.Div([
-            html.H2('Top-quoted female and male sources'),
+            html.H2('Top women and men quoted'),
             html.P('''
-                In this section, we display the top-quoted sources from either gender. Select
-                a month from the dropdown menu below to view its results.
+                In this section, we display the top women and men quoted as sources in a
+                given month. First, select a month from the dropdown menu below.
             ''')],
         ),
         html.Br(),
@@ -281,7 +281,7 @@ def layout():
         html.H4('Topics and gender representation among sources'),
         dcc.Markdown('''
             First, we display the *gender prominence* for each topic discovered in the 
-            given month. Gender prominence is a measure we use to study whether a
+            selected month. Gender prominence is a measure we use to study whether a
             given topic features quotes by men or women more prominently.
         '''),
         html.Div([

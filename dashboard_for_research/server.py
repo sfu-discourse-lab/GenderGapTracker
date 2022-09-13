@@ -1,6 +1,7 @@
 import flask
 import os
 import dash
+import dash_bootstrap_components as dbc
 # For language model and loggers
 import sys
 import spacy
@@ -16,6 +17,7 @@ app = dash.Dash(
     __name__,
     server=server,
     suppress_callback_exceptions=True,
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
     meta_tags=[
         {
             'name': 'Measuring gender bias in media - SFU',
@@ -38,6 +40,7 @@ def create_app_logger(filename):
     logger = logging.getLogger(filename)
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    os.makedirs("logs", exist_ok=True)
     rotateHandler = RotatingFileHandler('logs/' + "g-tracker-research-api.log",
                                         mode='a', maxBytes=1_000_000, backupCount=3)
     rotateHandler.setFormatter(formatter)
@@ -65,7 +68,7 @@ logger = create_app_logger('userInputDashLogger')
 print('Loading spaCy language model...')
 spacy_lang = spacy.load('en_core_web_lg')
 # Add custom named entity rules for non-standard person names that spaCy doesn't automatically identify
-ruler = EntityRuler(spacy_lang, overwrite_ents=True).from_disk('../NLP/main/rules/name_patterns.jsonl')
+ruler = EntityRuler(spacy_lang, overwrite_ents=True).from_disk('../nlp/english/rules/name_patterns.jsonl')
 spacy_lang.add_pipe(ruler)
 # Add neuralcoref pipe
 coref = neuralcoref.NeuralCoref(spacy_lang.vocab, max_dist=200)
@@ -73,3 +76,4 @@ spacy_lang.add_pipe(coref, name='neuralcoref')
 print('Finished loading.')
 # Specify gender recognition service IP and port
 GENDER_RECOGNITION_SERVICE = 'http://{}:{}'.format('localhost', 5000)
+

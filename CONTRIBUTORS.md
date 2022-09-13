@@ -6,6 +6,9 @@
 * [Mohammad Mazraeh](https://github.com/MohMaz): Software Developer and Machine Learning Engineer
 * [Vasundhara Gautam](https://github.com/vgautam): Computational Linguist
 * [Junette Dianne Gonzales](http://www.sfu.ca/linguistics/events/2020/08/junette-gonzales-sda-minor.html): Language Data Annotator
-* [Prashanth Rao](https://github.com/prrao87): Data Scientist and Software Developer
 * [Lucas Chambers](https://www.sfu.ca/linguistics/events/2019/10/lucas-chambers.html): Linguist and Topic Label Annotator
+* [Jillian Anderson](https://github.com/jillianderson8): Big Data Developer
+* [Prashanth Rao](https://github.com/prrao87): Data Scientist and Software Developer
+* [Philipp Eibl](https://philippnoah.github.io): Data Scientist and Software Developer (French NLP)
+* [Valentin-Gabriel Soumah](https://github.com/Pantalaymon): Data Scientist and Software Developer (French NLP)
 
