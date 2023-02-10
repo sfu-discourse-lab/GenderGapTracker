@@ -1,5 +1,5 @@
 # Scraping
-This section contains the code we used for scraping news article content from various Canadian outlets, as well as added utilities for performing aggregations on the database for the dashboard. Note that we store all our data on a MongoDB database, so the scraper code shown in this repo can be modified accordingly if using any other database downstream. The code in this directory was tested on Python 3.6, but should be valid for higher versions.
+This section contains the code we used for scraping news article content from various Canadian outlets. Note that we store all our data on a MongoDB database, so the scraper code shown in this repo can be modified accordingly if using any other database downstream. The code in this directory was tested on Python 3.6, but should be valid for higher versions.
 
 ## Required installations for scraping and data storage
  * MongoDB: Installation instructions [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/).
