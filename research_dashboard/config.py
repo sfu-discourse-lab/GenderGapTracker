@@ -20,7 +20,7 @@ config = {
     "GENDER_RECOGNITION": {
         "GENDERIZE_ENABLED": False,
         "GENDERAPI_ENABLED": True,
-        "GENDERAPI_TOKEN": "JSON_TOKEN",
+        "GENDERAPI_TOKEN": "JSON_AUTH_TOKEN",
         "MANUAL_CACHE": "manual",
         "GENDERAPI_CACHE": "genderAPICleaned",
         "GENDERIZE_CACHE": "genderizeCleaned",
