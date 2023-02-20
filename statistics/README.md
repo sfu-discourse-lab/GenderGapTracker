@@ -1,6 +1,6 @@
 # Statistics
 
-This folder contains scripts to programmatically collect and display statistics for tracking purposes or for summarizing trends related to the GGT.
+This folder contains scripts to programmatically collect and display statistics for tracking purposes or for summarizing trends related to the GGT and RdP.
 
 ## Installation
 
@@ -9,7 +9,8 @@ This folder contains scripts to programmatically collect and display statistics 
 ```
 python3 -m venv venv
 source venv/bin/activate
-pip3 install -r requirements.txt
+python3 -m pip install -U pip wheel
+python3 -m pip install -r requirements.txt
 ```
 
 ---
@@ -22,7 +23,7 @@ Running repetitive queries manually on the MongoDB database using a GUI client l
 To run the query script locally, a database tunnel can be used. To do this, forward the ssh connection to the virtual machine that hosts the database (in this case `vm12`) to serve results on `localhost` through port 27017.
 
 ```
-ssh rcg-vm0012.dcr.sfu.ca -f -N -L 27017:localhost:27017
+ssh vm12 -f -N -L 27017:localhost:27017
 ```
 Alternatively, if a tunnel cannot be set up, the query script can be directly run on the database VM instance.
 
@@ -98,9 +99,9 @@ To run a series of queries over different periods of time, create a shell script
 ```bash
 #!/usr/bin/sh
 
-python3 run.py --begin_date	2018-10-01	--end_date	2018-10-31 --top_sources_female --top_sources_male --limit 100 --sort desc
-python3 run.py --begin_date	2018-11-01	--end_date	2018-11-30 --top_sources_female --top_sources_male --limit 100 --sort desc
-python3 run.py --begin_date	2018-12-01	--end_date	2018-12-31 --top_sources_female --top_sources_male --limit 100 --sort desc
+python3 run.py --begin_date 2018-10-01 --end_date 2018-10-31 --top_sources_female --top_sources_male --limit 100 --sort desc
+python3 run.py --begin_date 2018-11-01 --end_date 2018-11-30 --top_sources_female --top_sources_male --limit 100 --sort desc
+python3 run.py --begin_date 2018-12-01 --end_date 2018-12-31 --top_sources_female --top_sources_male --limit 100 --sort desc
 ...
 ...
 ```
