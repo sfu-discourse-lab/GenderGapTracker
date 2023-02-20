@@ -6,11 +6,11 @@ The English pipeline requires Python 3.6 for legacy reasons -- it uses spaCy 2.1
 Make sure that `gcc`, `build-essential` and `python3-devel` (on Red Hat/CentOS), or `python3-dev` (on ubuntu) are installed on the system. Also, install `python3-venv` for managing virtual environments. Also, ensure `wheel` is installed prior to installing the dependencies (Run `pip3 install wheel` as shown below)
 
 ```sh
-python3 -m venv GRIM-3  # python3 -> python3.6 for legacy reasons (neuralcoref)
+python3 -m venv GRIM-EN  # python3 -> python3.6 for legacy reasons (neuralcoref)
 ```
 Activate the environment and install the dependencies:
 ```
-source GRIM-3/bin/activate
+source GRIM-EN/bin/activate
 python3 -m pip install -U pip wheel  # Upgrade pip and install the wheel package first
 python3 -m pip install -r requirements.txt
 ```

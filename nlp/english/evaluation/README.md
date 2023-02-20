@@ -25,8 +25,8 @@ If not done already, install a virtual environment using the `requirements.txt` 
 
 ```sh
 cd /path_to_code/GenderGapTracker/nlp/english
-python3 -m venv GRIM-3   # python3 -> python3.6 for legacy reasons (neuralcoref)
-source GRIM-3/bin/activate
+python3 -m venv GRIM-EN   # python3 -> python3.6 for legacy reasons (neuralcoref)
+source GRIM-EN/bin/activate
 python3 -m pip install -U pip wheel  # Upgrade pip and install latest wheel package first
 python3 -m pip install -r requirements.txt
 ```
