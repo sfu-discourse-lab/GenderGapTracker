@@ -18,20 +18,17 @@ Obtain the directories named `humanAnnotations` and `rawtext` and place them in 
 ```
 
 ## Set Up Environment
-Install Python 3.6 for English (or Python 3.9 for French) and follow the below instructions to set up and activate a virtual environment.
+This section assumes that the English NLP environment in `../nlp/english` has already been set up, as the dashboard has a dependency on the English NLP modules, specifically the entity gender annotator for NER and coreference resolution. **Just like in the English NLP pipeline**, the dash app requires Python 3.6 for legacy reasons -- it uses spaCy 2.1.3 and `neuralcoref` for performing coreference resolution, which, unfortunately, are not installable on higher versions of spaCy or Python.
+
+
+If not done already, install a virtual environment using the `requirements.txt` from the `../nlp/english` directory in this repo.
 
 ```sh
-python3 -m venv GRIM-3
+cd /path_to_code/GenderGapTracker/nlp/english
+python3 -m venv GRIM-3   # python3 -> python3.6 for legacy reasons (neuralcoref)
 source GRIM-3/bin/activate
-```
-For further development, simply activate the existing environment each time.
-```sh
-source GRIM-3/bin/activate
-```
-
-#### Install dependencies
-```sh
-pip3 install -r requirements.txt
+python3 -m pip install -U pip wheel  # Upgrade pip and install latest wheel package first
+python3 -m pip install -r requirements.txt
 ```
 
 #### `spaCy` language model

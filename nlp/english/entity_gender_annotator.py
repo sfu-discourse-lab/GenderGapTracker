@@ -1,20 +1,21 @@
 import argparse
+import importlib
+import json
 import logging
 import re
 import traceback
-import urllib
-import importlib
-import json
-from bson import ObjectId
 from datetime import datetime, timedelta
-import requests
 from multiprocessing import Pool, cpu_count
 
 import neuralcoref
+import requests
 import spacy
+from bson import ObjectId
 from spacy.pipeline import EntityRuler
-from config import config
+
+import gender_predictor
 import utils
+from config import config
 from quote_extractor import QuoteExtractor
 
 logger = utils.create_logger(
@@ -28,17 +29,16 @@ logger = utils.create_logger(
 def chunker(iterable, chunksize):
     """Yield a smaller chunk of a large iterable"""
     for i in range(0, len(iterable), chunksize):
-        yield iterable[i : i + chunksize]
+        yield iterable[i: i + chunksize]
 
 
 def process_chunks(chunk):
     """Pass through a chunk of document IDs and extract quotes"""
     db_client = utils.init_client(MONGO_ARGS)
     read_collection = db_client[DB_NAME][READ_COL]
-    write_collection = db_client[DB_NAME][WRITE_COL] if WRITE_COL else None
     for idx in chunk:
         mongo_doc = read_collection.find_one({"_id": idx})
-        process_mongo_doc(read_collection, write_collection, mongo_doc)
+        process_mongo_doc(db_client, read_collection, mongo_doc)
 
 
 def run_pool(poolsize, chunksize):
@@ -65,30 +65,11 @@ class EntityGenderAnnotator:
     def __init__(self, config) -> None:
         self.nlp = config["spacy_lang"]
         self.session = config["session"]
-        gender_ip = config["GENDER_RECOGNITION"]["HOST"]
-        gender_port = config["GENDER_RECOGNITION"]["PORT"]
-        self.gender_recognition_service = f"http://{gender_ip}:{gender_port}"
         self.blocklist = utils.get_author_blocklist(config["NLP"]["AUTHOR_BLOCKLIST"])
 
     def has_coverage(self, s1, s2):
         """Check if one span covers another"""
         return len(s1.intersection(s2)) >= 2
-
-    def get_genders(self, session, names):
-        """Query gender services for a named entity's gender"""
-        parsed_names = urllib.parse.quote(",".join(names))
-        url = f"{self.gender_recognition_service}/get-genders?people={parsed_names}"
-        if parsed_names:
-            response = session.get(url)
-            if response:
-                data = response.json()
-            else:
-                code = response.status_code
-                logger.warning(f"Failed to retrieve valid JSON: status code {code}")
-                data = {}
-        else:
-            data = {}
-        return data
 
     def merge_nes(self, doc_coref):
         """
@@ -107,8 +88,6 @@ class EntityGenderAnnotator:
         # ----- Part A: assign clusters to person named entities
         for ent in person_nes:
             # Sometimes we get noisy characters in name entities
-            # TODO: Maybe it's better to check for other types of problems in NEs here too
-
             ent_cleaned = utils.clean_ne(str(ent))
             if (len(ent_cleaned) == 0) or utils.string_contains_digit(ent_cleaned):
                 continue
@@ -258,6 +237,13 @@ class EntityGenderAnnotator:
                 return str(x), x.label_
         return None, None
 
+    def write_unknown_genders_to_log(self, gender_results):
+        unknown_gender_names = [name for name in gender_results if gender_results[name] == "unknown"]
+        if unknown_gender_names:
+            logger.warning(
+                "Unknown gender names after trying in all caches and services: {0}".format(str(unknown_gender_names))
+            )
+
     def quote_assign(self, nes, quotes, doc_coref):
         """
         Assign quotes to named entities based on overlap of quote's speaker span and the named entity span
@@ -321,12 +307,14 @@ class EntityGenderAnnotator:
 
         return quote_nes, quote_no_nes, all_quotes
 
-    def run(self, text, authors, quotes, article_url):
+    def run(self, db_client, text, authors, quotes, article_url):
         """Return gender annotations based on names of people and quotes"""
         # Process authors
         cleaner = utils.CleanAuthors(self.nlp)
         authors = cleaner.clean(authors, self.blocklist)
-        author_genders = self.get_genders(self.session, authors)
+        author_genders = {}
+        if authors:
+            author_genders = gender_predictor.get_genders(self.session, db_client, authors)
         authors_female, authors_male, authors_unknown = [], [], []
 
         for person, gender in zip(author_genders.keys(), author_genders.values()):
@@ -348,8 +336,10 @@ class EntityGenderAnnotator:
         people = list(
             filter(None, people)
         )  # Make sure no empty values are sent for gender prediction
-        people_genders = self.get_genders(self.session, people)
-
+        people_genders = {}
+        if people:
+            people_genders = gender_predictor.get_genders(self.session, db_client, people)
+            self.write_unknown_genders_to_log(people_genders)
         people_female, people_male, people_unknown = [], [], []
         for person, gender in zip(people_genders.keys(), people_genders.values()):
             if gender == "female":
@@ -412,8 +402,9 @@ class EntityGenderAnnotator:
         return annotation
 
 
-def process_mongo_doc(read_collection, write_collection, mongo_doc):
+def process_mongo_doc(db_client, read_collection, mongo_doc):
     """Write entity-gender annotation results to a new collection OR update the existing collection."""
+    write_collection = db_client[DB_NAME][WRITE_COL] if WRITE_COL else None
     try:
         doc_id = str(mongo_doc["_id"])
         if mongo_doc is None:
@@ -465,7 +456,7 @@ def process_mongo_doc(read_collection, write_collection, mongo_doc):
                 text = mongo_doc["body"]
                 quotes = mongo_doc["quotes"]
                 article_url = mongo_doc["url"]
-                annotation = annotator.run(text, authors, quotes, article_url)
+                annotation = annotator.run(db_client, text, authors, quotes, article_url)
                 if UPDATE_DB:
                     if WRITE_COL:
                         # This logic is useful if we want to write to a different collection without affecting existing results
@@ -573,6 +564,7 @@ if __name__ == "__main__":
 
     if IN_DIR:
         if OUT_DIR:
+            db_client = utils.init_client(MONGO_ARGS)
             quote_extractor = QuoteExtractor(config)
             print("processing local files")
             file_dict = utils.get_files_from_folder(folder_path=IN_DIR, limit=DOC_LIMIT)
@@ -581,7 +573,7 @@ if __name__ == "__main__":
                 quotes = quote_extractor.extract_quotes(
                     nlp(utils.preprocess_text(text))
                 )
-                annotation = annotator.run(text, [], quotes, "")
+                annotation = annotator.run(db_client, text, [], quotes, "")
                 # json jump can't write datetime objects
                 annotation["lastModified"] = annotation["lastModified"].strftime(
                     "%m/%d/%Y, %H:%M:%S"

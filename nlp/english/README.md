@@ -1,28 +1,23 @@
 # English NLP pipeline
 
 ## Set up environment
-Install Python 3.6+ and follow the below instructions to prepare the Python environment.
+The English pipeline requires Python 3.6 for legacy reasons -- it uses spaCy 2.1.3 and `neuralcoref` for performing coreference resolution, which, unfortunately, are not installable on higher versions of spaCy or Python.
 
-Make sure that `gcc`, `build-essential` and `python3-devel` (on Red Hat/CentOS), or `python3-dev` (on ubuntu) are installed on the system. Also, install `python3-venv` for managing virtual environments.
+Make sure that `gcc`, `build-essential` and `python3-devel` (on Red Hat/CentOS), or `python3-dev` (on ubuntu) are installed on the system. Also, install `python3-venv` for managing virtual environments. Also, ensure `wheel` is installed prior to installing the dependencies (Run `pip3 install wheel` as shown below)
 
 ```sh
-python3 -m venv GRIM-3
+python3 -m venv GRIM-3  # python3 -> python3.6 for legacy reasons (neuralcoref)
 ```
 Activate the environment and install the dependencies:
 ```
 source GRIM-3/bin/activate
-pip3 install -r requirements-py36.txt   # If using python3.6
-# pip3 install -r requirements.txt   # If using python3.7 and above
+python3 -m pip install -U pip wheel  # Upgrade pip and install the wheel package first
+python3 -m pip install -r requirements.txt
 ```
-We also need to install spaCy's large language model from within the virtual environment.
 
+Also, install the large language model for spaCy as shown below:
 ```sh
 python3 -m spacy download en_core_web_lg
-```
-
-All NLP scripts for the English pipeline are in the `nlp/english` directory:
-```
-cd WomenInMedia/nlp/english
 ```
 
 ## Verify `config` parameters
@@ -31,26 +26,28 @@ The file `config.py` contains all the important parameters for database access a
 
 ```python
 config = {
-    'MONGO_ARGS': {
-        'host': ['mongo0', 'mongo1', 'mongo2'],
-        'port': 27017,
-        'username': 'username',
-        'password': 'password',
-        'authSource': 'admin',
-        'readPreference': 'nearest'
+    "MONGO_ARGS": {
+        "host": ["mongo0", "mongo1", "mongo2"],
+        "port": 27017,
+        "username": "username",
+        "password": "password",
+        "authSource": "admin",
+        "readPreference": "nearest"
     },
-    'GENDER_RECOGNITION': {
-        'GENDERIZE_ENABLED': False,
-        'GENDERAPI_ENABLED': True,
-        'GENDERAPI_TOKEN': 'PRIVATE_PASSPHRASE',
-        'HOST': 'localhost',
-        'PORT': 5000
+    "GENDER_RECOGNITION": {
+        "GENDERIZE_ENABLED": False,
+        "GENDERAPI_ENABLED": True,
+        "GENDERAPI_TOKEN": "JSON_AUTH_TOKEN",
+        "MANUAL_CACHE": "manual",
+        "GENDERAPI_CACHE": "genderAPICleaned",
+        "GENDERIZE_CACHE": "genderizeCleaned",
+        "FIRSTNAME_CACHE": "firstNamesCleaned",
     },
-    'NLP': {
-        'MAX_BODY_LENGTH': 20000,
-        'AUTHOR_BLOCKLIST': '/path_to_project/nlp/english/rules/author_blocklist.txt',
-        'NAME_PATTERNS': '/path_to_project/nlp/english/rules/name_patterns.jsonl',
-        'QUOTE_VERBS': '/path_to_project/nlp/english/rules/quote_verb_list.txt'
+    "NLP": {
+        "MAX_BODY_LENGTH": 20000,
+        "AUTHOR_BLOCKLIST": "/path_to_code/GenderGapTracker/rules/author_blocklist.txt",
+        "NAME_PATTERNS": "/path_to_code/GenderGapTracker/rules/name_patterns.jsonl",
+        "QUOTE_VERBS": "/path_to_code/GenderGapTracker/rules/quote_verb_list.txt"
     }
 }
 ```
@@ -58,13 +55,13 @@ config = {
 The below JSON fields are used:
 
 #### MongoDB arguments
-Contains the host name, port, username and password for logging into the MongoDB production server. 
+Contains the host name, port, username and password for logging into the MongoDB production server. We use a trifecta cluster (one primary with two replicas), and the names listed here are aliases pointing to the actual server addresses.
 
 #### Gender services
-Contains the option flags for the 'Genderize' and 'Gender-API' external services, which can be enabled or disabled depending on the availability of API credits. The gender prediction service is hosted on a Flask server accessible on 'localhost' via port 5000.
+Contains the option flags for the 'Genderize' and 'Gender-API' external services, which can be enabled or disabled depending on the availability of API credits. It also stores the cache names pointing to all the collections that have name-gender mappings in our MongoDB database.
 
 #### NLP module
-The NLP modules require static file inputs containing the blocklist words for the author names, custom name patterns (to detect non-standard `PERSON` named entities), and the quote verb allowlist. **Make sure the _absolute_ paths to these files are specified**.
+The NLP modules require static file inputs containing the blocklist words for the author names, custom name patterns (to detect non-standard `PERSON` named entities), and the quote verb allowlist.
 
 To avoid memory problems in spaCy on very long articles (which could possibly crash the script), we limit the quote extraction and entity gender annotation scripts to a maximum character limit per article of 20,000.
 
@@ -219,24 +216,24 @@ The example command shown overwrites all entity gender annotator fields in the `
 Following this step, the entire database is updated and the aggregator script that processes daily data can then be run to update results on the live dashboard.
 
 ### 4. Rerun daily aggregator for Informed Opinions dashboard
-The daily aggregator is a script (`WomenInMedia/scraper/tools.py`) that automatically runs once a day, aggregating the number of female/male sources for display on the [public dashboard](https://gendergaptracker.informedopinions.org/). To see the latest numbers from the previous step, this script can be manually run as follows.
+The daily aggregator is a script (` GenderGapTracker/scraper/tools.py`) that automatically runs once a day, aggregating the number of female/male sources for display on the [public dashboard](https://gendergaptracker.informedopinions.org/). To see the latest numbers from the previous step, this script can be manually run as follows.
 
 ```
-python3 WomenInMedia/scraper/tools.py "generate_daily_collection"
+python3  GenderGapTracker/scraper/tools.py "generate_daily_collection"
 ```
 The script takes about half an hour (as of December 2020) to run, following which the updated stats can be seen on the public dashboard.
 
 ### 5. Rerun monthly top sources scripts for research dashboard
 Next, we need to update the precomputed stats for the research dashboard's top-quoted sources and monthly trends apps. The paths to the scripts that compute values for these apps are shown below:
 
-1. `WomenInMedia/statistics/monthly_pipeline/monthly_top_sources.py`
-1. `WomenInMedia/statistics/monthly_pipeline/monthly_top_sources_timeseries.py`
+1. ` GenderGapTracker/statistics/monthly_pipeline/monthly_top_sources.py`
+1. ` GenderGapTracker/statistics/monthly_pipeline/monthly_top_sources_timeseries.py`
 
 Script #1 calculates the top 15 sources for each month for either gender, used for displaying the top-quoted sources lollipop chart. Script #2 aggregates the total number of quotes for all sources (of either gender) that appeared in the top 50 sources for any given month.
 
 #### Rerun script #1:
 ```
-cd WomenInMedia/statistics/monthly_pipeline
+cd  GenderGapTracker/statistics/monthly_pipeline
 python3 monthly_top_sources.py --year 2020 --month 8
 ```
 Alternatively, a shell script is written that executes the aggregations for each month one by one. A snippet of the shell script is shown below.

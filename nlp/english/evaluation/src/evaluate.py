@@ -283,7 +283,7 @@ def compare_gender_ratio(target_dir, pred_dir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="evaluation of all the steps of the gender annotation pipeline")
     parser.add_argument("--target_dir", type=str, default="./eval/humanAnnotations/", help="Path to read input text files from this directory.")
-    parser.add_argument("--pred_dir", type=str, default="./eval/systemAnnotations/V6.1/", help="Path to write JSON quotes to this directory.")
+    parser.add_argument("--pred_dir", type=str, default="./eval/systemAnnotations/V7.0/", help="Path to write JSON quotes to this directory.")
     parser.add_argument('--quote_extraction', action='store_true', help="compute metrics on the quote extractor output")
     parser.add_argument('--gender_annotation', action='store_true', help="compute metrics on the gender annotator on the whole pipeline")
     parser.add_argument('--gender_ratio', action='store_true', help="compare overall gender ratios between target and output of whole pipeline")
