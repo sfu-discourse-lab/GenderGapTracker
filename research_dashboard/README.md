@@ -8,8 +8,6 @@
       - [MongoDB database connection](#mongodb-database-connection)
     - [Run development server](#run-development-server)
   - [Deployment](#deployment)
-    - [Update to the latest code version](#update-to-the-latest-code-version)
-    - [Restart the server](#restart-the-server)
   - [Update `aliases.txt` file](#update-aliasestxt-file)
   - [Troubleshooting](#troubleshooting)
   - [Dashboard Design \& Structure](#dashboard-design--structure)
@@ -74,26 +72,6 @@ python3 run.py
 ## Deployment
 The app is deployed using `nginx` (for load balancing incoming HTTP traffic) and `gunicorn` (to allow asynchronous calls via multiple workers). The below steps assume that the `nginx` daemon is already set up on the remote machine instance, along with a system service to start/stop `gunicorn`.
 
-### Update to the latest code version
-`sudo` to the approved user `g-tracker` on the deployment server, and `git pull` the latest version of the code.
-```sh
-sudo -u g-tracker -i
-cd WomenInMedia
-git pull
-```
-
-### Restart the server
-This step needs root access. To push dashboard and app updates to production, restart the `gunicorn` service as shown below.
-
-To update the read dashboard, use the below command:
-```sh
-sudo service g-tracker restart
-```
-
-To update the read dashboard, use the below command:
-```sh
-sudo service g-tracker-admin restart
-```
 
 ## Update `aliases.txt` file
 The file `aliases.txt` exists to help deal with cases where different news outlets publish a person's name using a variety of aliases. For example, in quoting the British monarch Queen Elizabeth II, certain outlets might use the name "Queen Elizabeth", while others reference her official name "Queen Elizabeth II". Other situations where this occurs often include women and their maiden names, for example, "Sarah Huckabee Sanders". Certain organizations publish her name using just her post-marital name , "Sarah Sanders", while others refer to her combined birth/marital name, "Sarah Huckabee Sanders".
