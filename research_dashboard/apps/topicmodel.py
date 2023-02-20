@@ -2,10 +2,8 @@ import datetime
 import pandas as pd
 from pymongo import MongoClient
 # Dash
-import dash_html_components as html
-import dash_core_components as dcc
-from dash.dependencies import Input, Output, State
-from dash_table import DataTable
+from dash import dcc, html, dash_table
+from dash.dependencies import Input, Output
 # Server and settings
 from server import app
 from config import config
@@ -204,7 +202,7 @@ def layout():
         html.Br(),
         html.Div(id='top15_datestring'),
         html.Div(
-            DataTable(
+            dash_table.DataTable(
                 id='topic-table',
                 columns=[
                     {'name': 'Topic labels', 'id': 'topic_names'},

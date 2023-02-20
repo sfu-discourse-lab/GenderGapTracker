@@ -1,15 +1,9 @@
-import json
-import urllib
-from urllib.request import urlopen
-# Dash
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
-from dash_table import DataTable
 from server import app, spacy_lang, logger
 # NLP modules
 import sys
@@ -19,16 +13,19 @@ import requests
 sys.path.append(os.path.abspath('../nlp/english'))
 import utils
 from config import config
+from gender_predictor import get_genders
 from quote_extractor import QuoteExtractor
 from entity_gender_annotator import EntityGenderAnnotator
 
-GENDER_RECOGNITION_SERVICE = 'http://{}:{}'.format('localhost', 5000)
 config["spacy_lang"] = spacy_lang
 config["session"] = requests.Session()
 config["NLP"]["QUOTE_VERBS"] = os.path.abspath('../nlp/english/rules/quote_verb_list.txt')
 config["NLP"]["AUTHOR_BLOCKLIST"] = os.path.abspath('../nlp/english/rules/author_blocklist.txt')
 extractor = QuoteExtractor(config)
 annotator = EntityGenderAnnotator(config)
+
+# Pass db_client object to the annotator
+DB_CLIENT = utils.init_client(config["MONGO_ARGS"])
 
 # ========== App Layout ================
 
@@ -151,7 +148,7 @@ def update_source_table(data, n_clicks):
     # Generate formatted data for datatable
     if n_clicks > 0 and data is not None:
         display_data = people_by_gender(data['sources'], 'sources')
-        return DataTable(
+        return dash_table.DataTable(
             id="source-table-id",
             data=display_data,
             columns=[
@@ -195,7 +192,7 @@ def update_source_table(data, n_clicks):
 def update_people_table(data, n_clicks):
     if n_clicks > 0 and data is not None:
         display_data = people_by_gender(data['people'], 'people')
-        return DataTable(
+        return dash_table.DataTable(
             id="people-table-id",
             data=display_data,
             columns=[
@@ -238,7 +235,7 @@ def update_people_table(data, n_clicks):
               Input('submit', 'n_clicks')])
 def update_quote_table(quotes_and_sources, n_clicks):
     if n_clicks > 0:
-        return DataTable(
+        return dash_table.DataTable(
             id="quote-table-id",
             data=quotes_and_sources,
             columns=[
@@ -262,15 +259,6 @@ def update_quote_table(quotes_and_sources, n_clicks):
 
 
 # ========== Functions ================
-
-def get_genders(people):
-    """Utilize gender recognition service to extract a name's gender"""
-    some_url = '{}/get-genders?people={}'.format(GENDER_RECOGNITION_SERVICE,
-                                                 urllib.parse.quote(','.join(people)))
-    response = urlopen(some_url)
-    data = json.load(response)
-    return data
-
 
 def format_names(name_list):
     """Format output string from extracted sources/mentions"""
@@ -311,7 +299,7 @@ def extract_quotes_and_entities(sample_text):
     text = utils.preprocess_text(sample_text)
     doc = spacy_lang(text)
     quotes = extractor.extract_quotes(doc)
-    annotation = annotator.run(text, [], quotes, "")
+    annotation = annotator.run(DB_CLIENT, text, [], quotes, "")
     people = annotation["people"]
     sources = annotation["sources"]
     unified_nes = annotator.merge_nes(doc)
@@ -331,7 +319,7 @@ def extract_quotes_and_entities(sample_text):
 
 def get_sources_and_people(people, sources):
     """Collect sources and people mentioned in the text based on their gender."""
-    people_genders = get_genders(people)
+    people_genders = get_genders(config["session"], DB_CLIENT, people)
     sources_and_people = dict()
     temp = dict()
     for val in ['female', 'male', 'unknown']:

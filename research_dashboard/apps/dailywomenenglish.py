@@ -4,8 +4,7 @@ from pymongo import MongoClient
 
 # Dash
 from dash.dependencies import Input, Output
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import plotly.express as px
 
 # Server and settings

@@ -66,7 +66,7 @@ def load_spacy_lang(lang='en_core_web_sm'):
 logger = create_app_logger('userInputDashLogger')
 # Load spaCy Model
 print('Loading spaCy language model...')
-spacy_lang = spacy.load('en_core_web_lg')
+spacy_lang = spacy.load('en_core_web_sm')
 # Add custom named entity rules for non-standard person names that spaCy doesn't automatically identify
 ruler = EntityRuler(spacy_lang, overwrite_ents=True).from_disk('../nlp/english/rules/name_patterns.jsonl')
 spacy_lang.add_pipe(ruler)
@@ -74,6 +74,4 @@ spacy_lang.add_pipe(ruler)
 coref = neuralcoref.NeuralCoref(spacy_lang.vocab, max_dist=200)
 spacy_lang.add_pipe(coref, name='neuralcoref')
 print('Finished loading.')
-# Specify gender recognition service IP and port
-GENDER_RECOGNITION_SERVICE = 'http://{}:{}'.format('localhost', 5000)
 

@@ -2,20 +2,17 @@
 
 - [Research Dashboard](#research-dashboard)
   - [Background](#background)
-  - [Password-protection for write dashboard](#password-protection-for-write-dashboard)
   - [Installation](#installation)
       - [spaCy language models](#spacy-language-models)
   - [Pre-requisites](#pre-requisites)
-      - [Gender prediction service](#gender-prediction-service)
       - [MongoDB database connection](#mongodb-database-connection)
     - [Run development server](#run-development-server)
   - [Deployment](#deployment)
     - [Update to the latest code version](#update-to-the-latest-code-version)
     - [Restart the server](#restart-the-server)
   - [Update `aliases.txt` file](#update-aliasestxt-file)
-      - [Ensure Dash is serving custom JS locally](#ensure-dash-is-serving-custom-js-locally)
   - [Troubleshooting](#troubleshooting)
-  - [Dashboard Design & Structure](#dashboard-design--structure)
+  - [Dashboard Design \& Structure](#dashboard-design--structure)
     - [Multi-page dashboard](#multi-page-dashboard)
       - [Root directory](#root-directory)
       - [Apps](#apps)
@@ -36,20 +33,22 @@ This page contains code for dashboard apps that we are building internally in th
 
 There are two main dashboards deployed and described in this README:
 * **Read** dashboard: displays results that are read from our MongoDB database. The URL for the read dashboard is [gendergaptracker.research.sfu.ca/](gendergaptracker.research.sfu.ca/).
-* **Write** dashboard: allows a user to write data directly to the database using an interactive UI. The URL for the write dashboard is [admin.gendergaptracker.research.sfu.ca/](gendergaptracker.research.sfu.ca/).
+* **Write** dashboard: "Admin" dashboard that allows a user to write data directly to the database using an interactive UI -- this dashboard has restricted access and is hosted separately.
 
-
-## Password-protection for write dashboard
-The write dashboard is deployed as an admin page with password protection - this is mainly because exposing write-functionality on a public URL to unprivileged users can be a serious security risk. All code for the write-dashboard is separated from the read dashboard, in the `admin/` directory, and is not shared publicly in this repo.
 
 
 ## Installation
-First, set up a virtual environment and install the dependencies from `requirements.txt`:
+This section assumes that the English NLP environment in `../nlp/english` has already been set up, as the dashboard has a dependency on the English NLP modules, specifically the entity gender annotator for NER and coreference resolution. **Just like in the English NLP pipeline**, the dash app requires Python 3.6 for legacy reasons -- it uses spaCy 2.1.3 and `neuralcoref` for performing coreference resolution, which, unfortunately, are not installable on higher versions of spaCy or Python.
+
+
+If not done already, install a virtual environment using the `requirements.txt` from the `../nlp/english` directory in this repo.
 
 ```sh
-python3 -m venv .venv
+cd ../nlp/english
+python3 -m venv GRIM-3   # python3 -> python3.6 for legacy reasons (neuralcoref)
 source GRIM-3/bin/activate
-pip3 install -r requirements.txt
+python3 -m pip install -U pip wheel  # Upgrade pip and install latest wheel package first
+python3 -m pip install -r requirements.txt
 ```
 
 #### spaCy language models
@@ -62,14 +61,6 @@ python3 -m spacy download en_core_web_lg
 
 ## Pre-requisites
 
-#### Gender prediction service
-The Dash app requires that our gender prediction Flask service (deployed as part of the GGT) is already running in the background and is serving gender results on port 5000. To make it easier to update and deploy, we define it as a system service that can be started/restarted using the below commands (**NOTE:** this requires sudo privileges).
-
-```sh
-sudo service gender_recognition start
-sudo service gender_recognition restart
-```
-
 #### MongoDB database connection
 All our data for the GGT is hosted on a MongoDB database. Both the read and write dashboards must be run on a machine that has an ssh tunnel to the database set up - this allows us to pass data back and forth from MongoDB to the dashboard's UI as required.
 
@@ -81,7 +72,7 @@ python3 run.py
 ```
 
 ## Deployment
-The app is deployed using `nginx` (for load balancing incoming HTTP traffic) and `gunicorn` (to allow asynchronous calls via multiple workers). The below steps assume that the `nginx` daemon is already set up on the remote machine instance, along with a system service to start/stop gunicorn.
+The app is deployed using `nginx` (for load balancing incoming HTTP traffic) and `gunicorn` (to allow asynchronous calls via multiple workers). The below steps assume that the `nginx` daemon is already set up on the remote machine instance, along with a system service to start/stop `gunicorn`.
 
 ### Update to the latest code version
 `sudo` to the approved user `g-tracker` on the deployment server, and `git pull` the latest version of the code.
@@ -119,18 +110,8 @@ Sarah Huckabee Sanders, Sarah Sanders
 The first name in each line represents the primary name, and the remaining names (**separated by commas**) are the various aliases that different outlets use for that person. We can extend this list as much as required, and the corresponding dashboard app self-updates to aggregate the quote counts, merging instances of each alias to produce more accurate statistics.
 
 
-#### Ensure Dash is serving custom JS locally
-To ensure that Dash serves the JavaScript file from the local directory during deployment, ensure that the server config is set to `serve_locally` as shown below.
-
-```python
-app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
-app.css.config.serve_locally = True
-app.scripts.config.serve_locally = True
-```
-
-
 ## Troubleshooting
-Deployment of this application is slightly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
+Deployment of this application is slighly more contrived because of its multi-page structure. If the app does not deploy as expected, the error is likely related to relative paths and imports. First, make sure that all paths that reference files within the individual apps defined in `apps/` start from the root directory of the server (i.e. the directory in which `server.py` is defined).
 
 Due to an [issue with circular imports](https://dash.plotly.com/urls) when defining multi-page applications in Plotly Dash, the Flask server object must be created in a separate file, which we call  `server.py`:
 

@@ -2,8 +2,7 @@ import datetime
 import pandas as pd
 from pymongo import MongoClient
 # Dash
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import dcc, html
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 # Server and settings
