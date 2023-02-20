@@ -32,6 +32,5 @@ source GRIM-FR/bin/activate
 python3.9 -m pip install -U pip wheel  # Upgrade pip and install the wheel package first
 python3.9 -m pip install -r requirements.txt
 ```
-```
 
 This installs the correct versions of spaCy, its associated language model, as well as coreferee (for coreference resolution).
