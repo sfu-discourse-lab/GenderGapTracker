@@ -1,4 +1,4 @@
-__Status: V6.1__ (Code provided as-is; only sporadic updates expected).
+__Status: V7.0__ (Code provided as-is; only sporadic updates expected)
 
 # The Gender Gap Tracker
 
@@ -18,8 +18,9 @@ See [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
 * `scraper`: Modules for scraping English and French news articles from various Canadian news organizations' websites and RSS feeds.
 * `nlp`: NLP modules for performing quote extraction and entity gender annotation on both English and French news articles.
-* `statistics`: Example scripts for running batch queries on our MongoDB database to retrieve source/gender statistics.
-* `dashboard_for_research`: [Research dashboard and apps](https://gendergaptracker.research.sfu.ca/) that allow us to explore the GGT data in more detail.
+* `api`: FastAPI code base exposing endpoints that serve our daily statistics to public-facing dashboards: [Gender Gap Tracker](https://gendergaptracker.informedopinions.org) and [Radar de Parité](https://radardeparite.femmesexpertes.ca)
+* `research_dashboard`: [A multi-page, extensible dashboard](https://gendergaptracker.research.sfu.ca/) built in Plotly Dash that allows us to explore the GGT data in more detail.
+* `statistics`: Scripts for running batch queries on our MongoDB database to retrieve source/gender statistics.
 
 ## Data
 
@@ -31,7 +32,7 @@ In future versions of the software, we are planning to visualize more fine-grain
 
 From a research perspective, questions of salience and space arise, i.e., whether quotes by men are presented more prominently in an article, and whether men are given more space in average (perhaps counted in number of words). More nuanced questions that involve language analysis include whether the quotes are presented differently in terms of endorsement or distance from the content of the quote (*stated* vs. *claimed*). Analyses of transitivity structure in clauses can yield further insights about the type of roles women are portrayed in, complementing some of our studies' findings via dependency analyses.
 
-We are mindful of and acknowledge the relative lack of work in NLP, topic modelling and gender equality for corpora in languages other than English. Our hope is that we are at least playing a small role here, through our analyses of Canadian French-language news whose code we share in this repo. We believe that such work will yield not only interesting methodological insights (for example, the relative benefits of stemming vs. lemmatization on topic keyword interpretability for non-English corpora), but also reveal whether the same gender disparities we observed in our English corpus are present in French. While we are actively pursuing such additional areas of inquiry, we also invite other researchers to join in this effort!
+We are mindful of and acknowledge the relative lack of work in NLP, topic modelling and gender equality for corpora in languages other than English. Our hope is that we are at least playing a small role here, through our analyses of Canadian French-language news whose code we share in this repo. We believe that such work will yield not only interesting methodological insights, but also reveal whether the same gender disparities we observed in our English corpus are present in French. While we are actively pursuing such additional areas of inquiry, we also invite other researchers to join in this effort!
 
 
 ## Contact
