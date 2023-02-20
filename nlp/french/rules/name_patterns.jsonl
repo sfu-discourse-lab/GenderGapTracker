@@ -54,6 +54,14 @@
 {"label": "ORG", "pattern": "Delpharm Industrie"}
 {"label": "ORG", "pattern": "Unither Bioélectronique"}
 {"label": "ORG", "pattern": "Systèmes Danfreight"}
+{"label": "ORG", "pattern": "Résilience Montréal"}
+{"label": "ORG", "pattern": "Altshuler Berzon"}
+{"label": "ORG", "pattern": "Odgers Berndtson"}
+{"label": "ORG", "pattern": "Puamun Meshkenu"}
+{"label": "ORG", "pattern": "Guylaine Desforges"}
+{"label": "ORG", "pattern": [{"LOWER": "affaire"}, {"TEXT": {"REGEX": "[A-Za-z]+"}}]}
+{"label": "ORG", "pattern": [{"LOWER": "vkousno"}, {"LOWER": "i"}, {"LOWER": "totchka"}]}
+{"label": "MISC", "pattern": [{"LOWER": "wakanda"}, {"LOWER": "forever"}]}
 {"label": "MISC", "pattern": [{"LOWER": "mi'kmaw"}]}
 {"label": "MISC", "pattern": "Bergdorf Goodman"}
 {"label": "MISC", "pattern": "Yuk Yuk"}

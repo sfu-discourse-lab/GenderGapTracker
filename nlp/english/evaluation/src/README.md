@@ -45,11 +45,11 @@ optional arguments:
 ```
 
 ### Example run command
-For V6.1, this is the command used to generate all the needed outputs.
+For V7.0, this is the command used to generate all the needed outputs.
 ```sh
-python3 run_predictions.py --in_dir ./rawtexts/ --target_dir ./eval/humanAnnotations/ --out_dir ./eval/systemAnnotations/V6.1/ --all
+python3 run_predictions.py --in_dir ./rawtexts/ --target_dir ./eval/humanAnnotations/ --out_dir ./eval/systemAnnotations/V7.0/ --all
 ```
-This dumps out 98 JSON files containing the respective system output in each of these directories : `./eval/systemAnnotations/V6.1/quotes/extracted_quotes`, `./eval/systemAnnotations/V6.1/gender_annotation/entire_pipeline`
+This dumps out 98 JSON files containing the respective system output in each of these directories : `./eval/systemAnnotations/V7.0/quotes/extracted_quotes`, `./eval/systemAnnotations/V7.0/gender_annotation/entire_pipeline`
 
 ## 2. Get the metrics
 
@@ -78,9 +78,9 @@ optional arguments:
 ```
 
 ### Example run command
-For V6.1, this is the command used to display the metrics for all parts of the pipeline
+For V7.0, this is the command used to display the metrics for all parts of the pipeline
 ```sh
-python3 evaluate.py --target_dir eval/humanAnnotations/ --pred_dir eval/systemAnnotations/V6.1/ --all
+python3 evaluate.py --target_dir eval/humanAnnotations/ --pred_dir eval/systemAnnotations/V7.0/ --all
 ```
 Our latest (best) evaluation produced the metrics shown below.
 
@@ -101,11 +101,11 @@ Verbs (indep):       83.027               88.11                85.493           
 Gender Annotation
 ----------------------------------------
                      Precision (%)        Recall (%)           F1-Score (%)        
-peopleFemale         72.821               77.596               75.133              
-peopleMale           78.105               92.278               84.602              
+peopleFemale         71.939               77.049               74.406              
+peopleMale           78.361               92.278               84.752              
 peopleUnknown        N/A                  0.0                  N/A                 
 sourcesFemale        94.643               64.634               76.812              
-sourcesMale          87.745               76.496               81.735              
+sourcesMale          87.805               76.923               82.005              
 sourcesUnknown       N/A                  0.0                  N/A                 
 
 
@@ -113,7 +113,7 @@ Gender Ratio: People
 ----------------------------------------
                      Male                 Female               Unknown             
 Human annotations    0.738                0.261                0.001               
-System V6.1          0.76                 0.24                 0.0                 
+System V7.0          0.758                0.242                0.0                 
 
 
 
@@ -121,5 +121,5 @@ Gender Ratio: Sources
 ----------------------------------------
                      Male                 Female               Unknown             
 Human annotations    0.738                0.259                0.003               
-System V6.1          0.785                0.215                0.0   
+System V7.0          0.785                0.215                0.0  
 ```

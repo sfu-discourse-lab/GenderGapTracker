@@ -33,33 +33,38 @@ def get_data_from_json(filename):
         return json.load(f)
 
 
+def dir_empty(dir_path):
+    return not next(os.scandir(dir_path), None)
+
+
 def chunker(iterable, chunksize):
     """Yield a smaller chunk of a large iterable"""
     for i in range(0, len(iterable), chunksize):
-        yield iterable[i : i + chunksize]
+        yield iterable[i: i + chunksize]
 
 
 def process_chunks(chunk):
+    db_client = utils.init_client(config["MONGO_ARGS"])
     for idx in chunk:
         rawtext = get_rawtexts_from_file(Path(IN_DIR) / f"{idx}.txt")
         text = utils.preprocess_text(rawtext)
         doc = nlp(text)
         if QUOTE_EXTRACTION:
-            print(f"Extracting quotes for {idx}")
             pred_extracted_quotes = quote_extractor.extract_quotes(doc)
             json.dump(
                 pred_extracted_quotes,
                 open(os.path.join(extracted_quotes_dir, idx + ".json"), "w"),
             )
+            print(f"Processed quotes for {idx}")
         if GENDER_ANNOTATION:
-            print(f"Extracting quotes and entity genders for {idx}")
             pred_extracted_quotes = quote_extractor.extract_quotes(doc)
             json.dump(
                 pred_extracted_quotes,
                 open(os.path.join(extracted_quotes_dir, idx + ".json"), "w"),
             )
+            print(f"Processed quotes for {idx}")
             pred_annotation = entity_gender_annotator.run(
-                text, [], pred_extracted_quotes, []
+                db_client, text, [], pred_extracted_quotes, []
             )
             pred_annotation["lastModified"] = pred_annotation["lastModified"].strftime(
                 "%m/%d/%Y, %H:%M:%S"
@@ -68,6 +73,7 @@ def process_chunks(chunk):
                 pred_annotation,
                 open(os.path.join(gender_annotation_dir, idx + ".json"), "w"),
             )
+            print(f"Processed entity genders for {idx}")
 
 
 def run_predictions():
@@ -86,7 +92,7 @@ def run_predictions():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluation of all the steps of the gender annotation pipeline")
     parser.add_argument("--in_dir", type=str, default="./rawtexts/", help="Path to read input text files from this directory.")
-    parser.add_argument("--out_dir", type=str, default="./eval/systemAnnotations/V6.1/", help="Path to dir to output all predictions")
+    parser.add_argument("--out_dir", type=str, default="./eval/systemAnnotations/V7.0/", help="Path to dir to output all predictions")
     parser.add_argument("--target_dir", type=str, default="./eval/humanAnnotations/", help="Path to json target files. Serve as anchor for intermediate steps of the pipeline.")
     parser.add_argument('--quote_extraction', action='store_true', help="run quote extractor on text input files")
     parser.add_argument('--gender_annotation', action='store_true', help="run whole the whole pipeline on text on text input files")
@@ -103,7 +109,7 @@ if __name__ == "__main__":
     POOLSIZE = args["poolsize"]
     CHUNKSIZE = args["chunksize"]
     if args["all"]:
-        QUOTE_EXTRACTION = True
+        QUOTE_EXTRACTION = False  # No need to run quote extraction if we're running the whole pipeline
         GENDER_ANNOTATION = True
 
     config["NLP"]["QUOTE_VERBS"] = "../../rules/quote_verb_list.txt"

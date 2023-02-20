@@ -1,15 +1,15 @@
+import json
 import logging
 import os
 import re
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
-from typing import Dict, List, Union
 from pathlib import Path
-import json
+from typing import Union
 
+import Levenshtein as lev
 import pymongo
 from bson import ObjectId
-import Levenshtein as lev
 
 
 # ========== Author name cleaning functions and classes ==========
@@ -111,6 +111,14 @@ def preprocess_text(txt):
     return txt
 
 
+def name_length_is_invalid(name):
+    """Check if name is too long or too short to be a valid person name."""
+    # Sometimes, NER fails comically and returns entities that are too long, and are most likely invalid person names
+    # (Unfortunately, this means long Arabic names can be missed , e.g., "Sheikh Faleh bin Nasser bin Ahmed bin Ali Al Thani")
+    is_invalid = (len(name.split()) <= 1) or (len(name.split()) > 6)
+    return True if is_invalid else False
+
+
 # ========== DB functions ==========
 def init_client(MONGO_ARGS):
     _db_client = pymongo.MongoClient(**MONGO_ARGS)
@@ -167,18 +175,14 @@ def has_coverage(span_1: tuple, span_2: tuple) -> bool:
     return len(span_1_char_indexes & span_2_char_indexes) >= 2
 
 
-def has_coverage_for_all(
-    spans_1: tuple[tuple[int]], spans_2: tuple[tuple[int]]
-) -> bool:
+def has_coverage_for_all(spans_1: tuple[tuple[int]], spans_2: tuple[tuple[int]]) -> bool:
     """
     Checks if all the spans in spans_1 have at least two overlapping
     characters with at least one span of spans_2
     """
     return all(
         any(has_coverage(span_1, span_2) for span_2 in spans_2) for span_1 in spans_1
-    ) and all(
-        any(has_coverage(span_2, span_1) for span_1 in spans_1) for span_2 in spans_2
-    )
+    ) and all(any(has_coverage(span_2, span_1) for span_1 in spans_1) for span_2 in spans_2)
 
 
 def get_list_of_spans(token_indexes: list[int], doc) -> list[tuple[int]]:
@@ -191,9 +195,7 @@ def create_logger(
 ):
     # Create logs directory if does not exist
     os.makedirs(log_dir, exist_ok=True)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     # create two loggers for entity_gender_annotator and gender detection
     app_logger = logging.getLogger(logger_name)
     app_logger.setLevel(logging.DEBUG)
@@ -225,10 +227,8 @@ def convert_date(date_str: str):
 
 # ========== I/O functions ==========
 def get_file_tuple(
-    file: str, 
-    encoding:str ="utf-8", 
-    type: str = "txt"
-    ) -> tuple[str, Union[str, dict]]:
+    file: str, encoding: str = "utf-8", type: str = "txt"
+) -> tuple[str, Union[str, dict]]:
     """tion
     # # Currently deactivated because it did not help improve F1-scores i
 
@@ -246,11 +246,8 @@ def get_file_tuple(
 
 
 def get_file_dict(
-    paths: list[str], 
-    limit: int, 
-    type: str = "txt", 
-    encoding="utf-8"
-    ) -> dict[str, Union[str, dict]]:
+    paths: list[str], limit: int, type: str = "txt", encoding="utf-8"
+) -> dict[str, Union[str, dict]]:
     files = {}
     for file in paths:
         if len(files) >= limit:
@@ -273,16 +270,11 @@ def get_files_from_folder(
     if folder_path:
         file_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
         limit = limit or len(file_paths)
-        files = get_file_dict(
-            paths=file_paths, limit=limit, type=type, encoding=encoding
-        )
+        files = get_file_dict(paths=file_paths, limit=limit, type=type, encoding=encoding)
     return files
 
 
-def write_quotes_local(
-    quote_dict: dict[str, str], 
-    output_dir: str
-    ) -> None:
+def write_quotes_local(quote_dict: dict[str, str], output_dir: str) -> None:
     """Write quotes to output file specified in the commandline args.
 
     Args:

@@ -67,6 +67,9 @@
 {"label": "ORG", "pattern": [{"LOWER": "eu"}, {"LOWER": "brexit"}]}
 {"label": "ORG", "pattern": [{"LOWER": "b"}, {"LOWER": "nai"}, {"LOWER": "brith"}]}
 {"label": "ORG", "pattern": [{"LOWER": "b'nai"}, {"LOWER": "brith"}]}
+{"label": "ORG", "pattern": [{"LOWER": "gidimt"}, {"LOWER": "en"}]}
+{"label": "ORG", "pattern": [{"LOWER": "gidimt'en"}]}
+{"label": "NORP", "pattern": [{"TEXT": {"REGEX": "[A-Za-z0-9]+"}}, {"LOWER": "mp"}]}
 {"label": "NORP", "pattern": [{"LOWER": "wet'suwet'en"}]}
 {"label": "NORP", "pattern": [{"LOWER": "mi'kmaw"}]}
 {"label": "NORP", "pattern": "Vuntut Gwichin"}

@@ -92,6 +92,14 @@ def clean_ne(name):
     return name.strip()
 
 
+def name_length_is_invalid(name):
+    """Check if name is too long or too short to be a valid person name."""
+    # Sometimes, NER fails comically and returns entities that are too long, and are most likely invalid person names
+    # (Unfortunately, this means long Arabic names can be missed , e.g., "Sheikh Faleh bin Nasser bin Ahmed bin Ali Al Thani")
+    is_invalid = (len(name.split()) <= 1) or (len(name.split()) > 6)
+    return True if is_invalid else False
+
+
 def string_contains_digit(inputString):
     return bool(re.search(r"\d", inputString))
 

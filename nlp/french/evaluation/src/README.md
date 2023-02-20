@@ -25,7 +25,7 @@ It can also run the whole gender annotation pipeline.
 
 ### Optional Arguments
 ```sh
-python3 run_predictions.py --help
+python3.9 run_predictions.py --help
 usage: run_predictions.py [-h] [--lang LANG] [--in_dir IN_DIR]
                                [--out_dir OUT_DIR] [--target_dir TARGET_DIR]
                                [--quote_extraction QUOTE_EXTRACTION]
@@ -48,11 +48,11 @@ optional arguments:
 ```
 
 ### Example run command
-For V6.1, this is the command used to generate all the needed outputs.
+For V7.0, this is the command used to generate all the needed outputs.
 ```sh
-python3 run_predictions.py --in_dir ./rawtexts/ --target_dir ./eval/humanAnnotations/ --out_dir ./eval/systemAnnotations/V6.1/ --all
+python3.9 run_predictions.py --in_dir ./rawtexts/ --target_dir ./eval/humanAnnotations/ --out_dir ./eval/systemAnnotations/V7.0/ --all
 ```
-This dumps out 54 JSON files containing the respective system output in each of the 4 directories : `./eval/systemAnnotations/V6.1/quotes/extracted_quotes`, `./eval/systemAnnotations/V6.1/quotes/merged_quotes`, `./eval/systemAnnotations/V6.1/gender_annotation/gender_classification`, `./eval/systemAnnotations/V6.1/gender_annotation/entire_pipeline`
+This dumps out 54 JSON files containing the respective system output in each of the 4 directories : `./eval/systemAnnotations/V7.0/quotes/extracted_quotes`, `./eval/systemAnnotations/V7.0/quotes/merged_quotes`, `./eval/systemAnnotations/V7.0/gender_annotation/gender_classification`, `./eval/systemAnnotations/V7.0/gender_annotation/entire_pipeline`
 
 ## 2. Get the metrics
 
@@ -64,7 +64,7 @@ For more details regarding the way the metrics are computed, see the readme in t
 
 ### Optional Arguments
 ```sh
-python3 evaluate.py --help
+python3.9 evaluate.py --help
 usage: evaluate.py [-h] [--lang LANG] [--in_dir IN_DIR]
                                [--out_dir OUT_DIR] [--target_dir TARGET_DIR]
                                [--quote_extraction QUOTE_EXTRACTION]
@@ -87,9 +87,9 @@ optional arguments:
 ```
 
 ### Example run command
-For V6.1, this is the command used to display the metrics for all parts of the pipeline
+For V7.0, this is the command used to display the metrics for all parts of the pipeline
 ```sh
-python3 evaluate.py --target_dir eval/humanAnnotations/ --pred_dir eval/systemAnnotations/V6.1/ --all
+python3.9 evaluate.py --target_dir eval/humanAnnotations/ --pred_dir eval/systemAnnotations/V7.0/ --all
 ```
 Our latest (best) evaluation produced the metrics shown below.
 
@@ -97,43 +97,43 @@ Our latest (best) evaluation produced the metrics shown below.
 Quote Extraction
 ----------------------------------------
                      Precision (%)        Recall (%)           F1-Score (%)         Accuracy (%)        
-Quotes: 0.3          82.67                78.121               80.331               -                   
-Speaker match: 0.3   -                    -                    -                    80.069              
-Verb match: 0.3      -                    -                    -                    90.55               
-Quotes: 0.8          73.011               68.993               70.945               -                   
-Speaker match: 0.8   -                    -                    -                    83.658              
-Verb match: 0.8      -                    -                    -                    94.163              
-Speakers (indep):    78.671               78.187               78.428               -                   
-Verbs (indep):       83.214               82.187               82.697               -                   
+Quotes: 0.3          83.972               79.463               81.655               -                   
+Speaker match: 0.3   -                    -                    -                    80.405              
+Verb match: 0.3      -                    -                    -                    90.878              
+Quotes: 0.8          74.61                70.604               72.552               -                   
+Speaker match: 0.8   -                    -                    -                    84.03               
+Verb match: 0.8      -                    -                    -                    94.677              
+Speakers (indep):    79.167               78.802               78.984               -                   
+Verbs (indep):       84.52                83.774               84.145               -                   
 
 
 Quote Merger
 ----------------------------------------
                      Precision (%)        Recall (%)           F1-Score (%)        
-Speaker Reference    93.627               75.944               83.864              
+Speaker Reference    90.27                66.402               76.518              
 
 
 Gender Classification
 ----------------------------------------
                      Precision (%)        Recall (%)           F1-Score (%)        
-peopleFemale         93.421               97.26                95.302              
-peopleMale           98.99                97.03                98.0                
+peopleFemale         97.26                97.26                97.26               
+peopleMale           99.005               98.515               98.759              
 peopleUnknown        N/A                  N/A                  N/A                 
-sourcesFemale        93.023               100.0                96.385              
-sourcesMale          100.0                95.868               97.89               
+sourcesFemale        97.561               100.0                98.765              
+sourcesMale          100.0                97.521               98.745              
 sourcesUnknown       N/A                  N/A                  N/A                 
 
 
 Gender Annotation
 ----------------------------------------
                      Precision (%)        Recall (%)           F1-Score (%)        
-people               96.935               92.0                 94.403              
-peopleFemale         93.056               91.781               92.414              
-peopleMale           95.767               89.604               92.583              
+people               97.2                 88.364               92.572              
+peopleFemale         92.424               83.562               87.77               
+peopleMale           97.283               88.614               92.746              
 peopleUnknown        N/A                  N/A                  N/A                 
-sources              94.737               67.081               78.546              
-sourcesFemale        90.0                 67.5                 77.143              
-sourcesMale          94.048               65.289               77.073              
+sources              93.878               57.143               71.043              
+sourcesFemale        83.333               50.0                 62.5                
+sourcesMale          95.946               58.678               72.821              
 sourcesUnknown       N/A                  N/A                  N/A                 
 
 
@@ -141,7 +141,7 @@ Gender Ratio: People
 ----------------------------------------
                      Male                 Female               Unknown             
 Human annotations    0.735                0.265                0.0                 
-System V6.1          0.724                0.276                0.0                 
+System V7.0          0.736                0.264                0.0                 
 
 
 
@@ -149,5 +149,5 @@ Gender Ratio: Sources
 ----------------------------------------
                      Male                 Female               Unknown             
 Human annotations    0.753                0.247                0.0                 
-System V6.1          0.737                0.263                0.0
+System V7.0          0.755                0.245                0.0
 ```

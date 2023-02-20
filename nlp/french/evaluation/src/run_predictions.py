@@ -1,6 +1,5 @@
 import argparse
 import os
-import importlib
 import sys
 import json
 from pathlib import Path
@@ -153,5 +152,5 @@ Set up the database tunnel on a Unix shell as follows. In the example below, `vm
 ssh vm12 -f -N -L 27017:localhost:27017
 ```
 
-In case database connectivity is not possible, it's possible to rewrite the gender service to only obtain named-based lookups via external gender APIs. However, in such a case, the results might vary from those shown below.
+In case database connectivity is not possible, it's possible to rewrite the gender service to only obtain named-based lookups via external gender APIs. However, in such a case, the results might vary from those shown in the README.
 '''
