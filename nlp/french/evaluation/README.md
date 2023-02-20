@@ -18,23 +18,20 @@ Obtain the directories named `humanAnnotations` and `rawtext` and place them in 
 ```
 
 ## Set Up Environment
-Install Python 3.9+ and follow the below instructions to set up and activate a virtual environment.
+This section assumes that the virtual environment for French NLP has already been set up. The French NLP pipeline uses a third party coreference resolution library named [coreferee](https://github.com/explosion/coreferee), which requires the use of Python 3.9. It is assumed that Python 3.9 exists on the system on which the French NLP code runs.
+
+Make sure that `gcc`, `build-essential` and `python3.9-devel` (on Red Hat/CentOS), or `python3.9-dev` (on ubuntu) are installed on the system. Also, install `python3.9-venv` for managing virtual environments, and ensure `wheel` is installed prior to installing the dependencies (as shown below)
+
+
+If not done already, install a virtual environment using the `requirements.txt` from the `nlp/french` directory in this repo.
 
 ```sh
-python3 -m venv GRIM-FR
-source GRIM-3/bin/activate
-```
-For further development, simply activate the existing environment each time.
-```sh
+cd /path_to_code/GenderGapTracker/nlp/french
+python3.9 -m venv GRIM-FR
 source GRIM-FR/bin/activate
+python3.9 -m pip install -U pip wheel  # Upgrade pip and install the wheel package first
+python3.9 -m pip install -r requirements.txt
 ```
-
-#### Install dependencies
-**First, make sure that the spaCy version shown in `requirements-py39.txt` is the same as the one running in production**
-
-```sh
-$ cd WomenInMedia/nlp/french
-$ python3 -m pip install -r requirements-py39.txt
 ```
 
 This installs the correct versions of spaCy, its associated language model, as well as coreferee (for coreference resolution).

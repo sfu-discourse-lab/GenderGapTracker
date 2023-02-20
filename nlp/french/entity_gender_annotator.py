@@ -1,10 +1,9 @@
 import argparse
 import importlib
 import json
-import re
 import logging
+import re
 import traceback
-import urllib
 from datetime import datetime, timedelta
 from multiprocessing import Pool, cpu_count
 
@@ -13,11 +12,11 @@ import requests
 import spacy
 from bson import ObjectId
 
+import gender_predictor
 import utils
 from entity_merger import FrenchEntityMerger
 from quote_extractor import QuoteExtractor as FrenchQuoteExtractor
 from quote_merger import FrenchQuoteMerger
-
 
 logger = utils.create_logger(
     "entity_gender_annotator_fr",
@@ -70,54 +69,36 @@ class FrenchEntityGenderAnnotator:
             "ministre",
         ],
     }
-    titles_gender_dict = {
-        title.lower(): k for k, v in gender_titles_dict.items() for title in v
-    }
+    titles_gender_dict = {title.lower(): k for k, v in gender_titles_dict.items() for title in v}
 
-    sibling_separator =  re.compile(",|(\\b((et)|(ou)|(mais))\\b)")
+    sibling_separator = re.compile(",|(\\b((et)|(ou)|(mais))\\b)")
     non_name_character = re.compile("[^\w \t\-]")
 
     def __init__(self, config) -> None:
         self.session = config["session"]
-        gender_ip = config["GENDER_RECOGNITION"]["HOST"]
-        gender_port = config["GENDER_RECOGNITION"]["PORT"]
-        self.gender_recognition_service = f"http://{gender_ip}:{gender_port}"
         self.blocklist = utils.get_author_blocklist(config["NLP"]["AUTHOR_BLOCKLIST"])
 
-    def get_genders(self, session, names: list) -> dict:
-        """
-        Gets genders of names by calling API
-        Returns dict with name as key and gender as value
-        """
-        parsed_names = urllib.parse.quote(",".join(names))
-        url = f"{self.gender_recognition_service}/get-genders?people={parsed_names}"
-        if parsed_names:
-            response = session.get(url)
-            if response:
-                data = response.json()
-            else:
-                code = response.status_code
-                data = {}
-                print("no response from server", code)
-        else:
-            data = {}
-        return data
+    def write_unknown_genders_to_log(self, gender_results):
+        unknown_gender_names = [
+            name for name in gender_results if gender_results[name] == "unknown"
+        ]
+        if unknown_gender_names:
+            logger.warning(
+                "Unknown gender names after trying in all caches and services: {0}".format(
+                    str(unknown_gender_names)
+                )
+            )
 
-    def run(self, entities: dict, updated_quotes: list, authors: list) -> dict:
+    def run(self, db_client, entities: dict, updated_quotes: list, authors: list) -> dict:
         """Returns gender annotation based on names of people and quotes"""
         (
             unique_people,
             people_female,
             people_male,
             people_unknown,
-        ) = self.get_people_genders(entities)
+        ) = self.get_people_genders(db_client, entities)
 
-        (
-            sources,
-            sources_female,
-            sources_male,
-            sources_unknown,
-        ) = self.get_sources_genders(
+        (sources, sources_female, sources_male, sources_unknown,) = self.get_sources_genders(
             updated_quotes, unique_people, people_female, people_male, people_unknown
         )
         (
@@ -125,7 +106,7 @@ class FrenchEntityGenderAnnotator:
             authors_female,
             authors_male,
             authors_unknown,
-        ) = self.get_author_genders(authors)
+        ) = self.get_author_genders(db_client, authors)
 
         nb_quotes_speaker_not_count_sources = sum(
             1 for q in updated_quotes if q["reference"] not in sources
@@ -162,11 +143,11 @@ class FrenchEntityGenderAnnotator:
         }
         return annotation
 
-    def get_people_genders(self, people: dict) -> list:
+    def get_people_genders(self, db_client, people: dict) -> list:
         """
-        Get the gender of the list of people in the doct
-        First it lchecks if the title is sign of a gender
-        If it does not find any gender it runs the get_genders() func
+        Get the gender of the list of people in the dict
+          - First it checks if the title is sign of a gender
+          - If it does not find any gender it queries the gender_predictor methods
         """
         unique_people, female_people, male_people, unknown_people = (
             set(),
@@ -174,18 +155,15 @@ class FrenchEntityGenderAnnotator:
             set(),
             set(),
         )
-
         title_non_gendered_people = set()
         for entity, entity_sets in people.items():
             if (
                 self.sibling_separator.search(entity)
                 or self.non_name_character.search(entity)
-                or len(entity.split(" ")) < 2
+                or len(entity.split()) < 2
             ):
                 continue
-            titles_genders = {
-                self.titles_gender_dict.get(title) for title in entity_sets[1]
-            }
+            titles_genders = {self.titles_gender_dict.get(title) for title in entity_sets[1]}
 
             if "female" in titles_genders:
                 female_people.add(entity)
@@ -193,18 +171,17 @@ class FrenchEntityGenderAnnotator:
                 male_people.add(entity)
             else:
                 title_non_gendered_people.add(entity)
-        # print(people,"|",title_non_gendered_people)
-        people_genders = self.get_genders(self.session, title_non_gendered_people)
-        female_people |= {
-            person for person, gender in people_genders.items() if gender == "female"
-        }
-        male_people |= {
-            person for person, gender in people_genders.items() if gender == "male"
-        }
-        unknown_people = {
-            person for person, gender in people_genders.items() if gender == "unknown"
-        }
 
+        people_genders = {}
+        if title_non_gendered_people:
+            people_genders = gender_predictor.get_genders(
+                self.session, db_client, list(title_non_gendered_people)
+            )
+            self.write_unknown_genders_to_log(people_genders)
+
+        female_people |= {person for person, gender in people_genders.items() if gender == "female"}
+        male_people |= {person for person, gender in people_genders.items() if gender == "male"}
+        unknown_people = {person for person, gender in people_genders.items() if gender == "unknown"}
         unique_people = female_people | male_people | unknown_people
 
         return (unique_people, female_people, male_people, unknown_people)
@@ -230,14 +207,16 @@ class FrenchEntityGenderAnnotator:
 
         return (sources, sources_female, sources_male, sources_unknown)
 
-    def get_author_genders(self, authors: list):
+    def get_author_genders(self, db_client, authors: list):
         """
         Run method for processing authors and return more clean author names for gender
         processing.
         """
         cleaner = utils.CleanAuthors(authors)
         authors_clean = cleaner.clean(self.blocklist)
-        author_genders = self.get_genders(self.session, authors_clean)
+        author_genders = {}
+        if authors_clean:
+            author_genders = gender_predictor.get_genders(self.session, db_client, authors_clean)
 
         authors_female = []
         authors_male = []
@@ -257,30 +236,30 @@ class FrenchEntityGenderAnnotator:
 def chunker(iterable, chunksize):
     """Yield a smaller chunk of a large iterable"""
     for i in range(0, len(iterable), chunksize):
-        yield iterable[i : i + chunksize]
+        yield iterable[i: i + chunksize]
 
 
-def parse_chunks(chunk):
+def process_chunks(chunk):
     """Pass through a chunk of document IDs and extract quotes"""
     db_client = utils.init_client(MONGO_ARGS)
     read_collection = db_client[DB_NAME][READ_COL]
-    write_collection = db_client[DB_NAME][WRITE_COL] if WRITE_COL else read_collection
     for idx in chunk:
         mongo_doc = read_collection.find_one({"_id": idx})
-        process_mongo_doc(write_collection, mongo_doc)
+        process_mongo_doc(db_client, read_collection, mongo_doc)
 
 
-def annotate_text(text, authors, quotes):
+def annotate_text(db_client, text, authors, quotes):
     text = utils.preprocess_text(text)
     doc = nlp(text)
     people_clusters = entity_merger.run(doc)
     updated_quotes = quote_merger.run(quotes, people_clusters, doc)
-    annotation = entity_gender_annotator.run(people_clusters, updated_quotes, authors)
+    annotation = entity_gender_annotator.run(db_client, people_clusters, updated_quotes, authors)
     return annotation
 
 
-def process_mongo_doc(collection, mongo_doc):
+def process_mongo_doc(db_client, read_collection, mongo_doc):
     """Run whole pipeline on a MongoDB document, and write quotes to a specified collection in the database"""
+    write_collection = db_client[DB_NAME][WRITE_COL] if WRITE_COL else read_collection
     try:
         doc_id = str(mongo_doc["_id"])
         if mongo_doc is None:
@@ -293,7 +272,7 @@ def process_mongo_doc(collection, mongo_doc):
                     f"Skipping document {mongo_doc['_id']} due to long length {text_length} characters"
                 )
                 if UPDATE_DB:
-                    collection.update_one(
+                    read_collection.update_one(
                         {"_id": ObjectId(doc_id)},
                         {
                             "$unset": {
@@ -337,16 +316,14 @@ def process_mongo_doc(collection, mongo_doc):
                 authors = mongo_doc.get("authors", [])
                 text = mongo_doc["body"]
                 quotes = mongo_doc["quotes"]
-                annotation = annotate_text(text, authors, quotes)
+                annotation = annotate_text(db_client, text, authors, quotes)
                 if UPDATE_DB:
                     if WRITE_COL:
                         # This logic is useful if we want to write to a different collection without affecting existing results
-                        collection.insert_one({"currentId": ObjectId(doc_id), **annotation})
+                        write_collection.insert_one({"currentId": ObjectId(doc_id), **annotation})
                     else:
                         # Directly perform update on existing collection
-                        collection.update_one(
-                            {"_id": ObjectId(doc_id)}, {"$set": annotation}
-                        )
+                        read_collection.update_one({"_id": ObjectId(doc_id)}, {"$set": annotation})
     except:
         logger.exception(f"Failed to process {mongo_doc['_id']} due to runtime exception!")
         traceback.print_exc()
@@ -370,13 +347,12 @@ def run_pool(poolsize, chunksize):
     if MULTIPROCESSING:
         # TODO: Currently, coreferee doesn't support multiprocessing!!!
         pool = Pool(processes=poolsize)
-        pool.map(parse_chunks, chunker(document_ids, chunksize=chunksize))
+        pool.map(process_chunks, chunker(document_ids, chunksize=chunksize))
         pool.close()
     else:
-        parse_chunks(document_ids)
+        process_chunks(document_ids)
 
 
-# TODO: Remove these helper methods once we process all French articles in the DB at least once
 def get_yesterday():
     today = datetime.today().date() - timedelta(days=1)
     return today.strftime("%Y-%m-%d")
@@ -476,13 +452,14 @@ if __name__ == "__main__":
 
     if IN_DIR:
         if OUT_DIR:
+            db_client = utils.init_client(MONGO_ARGS)
             quote_extractor = FrenchQuoteExtractor(config)
             print("processing local files")
             file_dict = utils.get_files_from_folder(folder_path=IN_DIR, limit=DOC_LIMIT)
             for idx, text in file_dict.items():
                 print(idx)
                 quotes = quote_extractor.extract_quotes(nlp(utils.preprocess_text(text)))
-                annotation = annotate_text(text, [], quotes)
+                annotation = annotate_text(db_client, text, [], quotes)
                 # json jump can't write datetime objects
                 annotation["lastModified"] = annotation["lastModified"].strftime(
                     "%m/%d/%Y, %H:%M:%S"
