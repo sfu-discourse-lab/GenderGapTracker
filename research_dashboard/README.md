@@ -6,7 +6,7 @@
       - [spaCy language models](#spacy-language-models)
   - [Pre-requisites](#pre-requisites)
       - [MongoDB database connection](#mongodb-database-connection)
-    - [Run development server](#run-development-server)
+    - [Run development server locally](#run-development-server-locally)
   - [Deployment](#deployment)
   - [Update `aliases.txt` file](#update-aliasestxt-file)
   - [Troubleshooting](#troubleshooting)
@@ -62,8 +62,17 @@ python3 -m spacy download en_core_web_lg
 #### MongoDB database connection
 All our data for the GGT is hosted on a MongoDB database. Both the read and write dashboards must be run on a machine that has an ssh tunnel to the database set up - this allows us to pass data back and forth from MongoDB to the dashboard's UI as required.
 
-### Run development server
-During development, run the dash app locally (after starting the gender recognition Flask server and setting up a tunnel to the database) as follows:
+### Run development server locally
+
+To run this script locally during development, it is first required to set up an ssh tunnel that forwards the database connection to the local machine. This step is essential to complete the evaluation because we host a gender lookup cache on our database, which allows us to retrieve existing names and their associated genders.
+
+Set up the database tunnel on a Unix shell as follows. In the example below, vm12 is the primary database on which the gender cache is hosted. We simply forward the connection from port 27017 on the remote database to the same port on our local machine.
+
+```sh
+ssh vm12 -f -N -L 27017:localhost:27017
+```
+
+Then, simply run the dash app locally as follows:
 
 ```sh
 python3 run.py

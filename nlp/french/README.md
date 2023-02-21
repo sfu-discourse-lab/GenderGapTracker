@@ -15,13 +15,6 @@ source GRIM-FR/bin/activate
 python3.9 -m pip install -U pip wheel  # Upgrade pip and install the wheel package first
 python3.9 -m pip install -r requirements.txt
 ```
-## Run gender recognition service
-This script starts a Flask server that provides routes for other modules to access the gender recognition service. All parameters for the gender API services are in the file `config.py`. For testing this code locally, run this script with the default parameters:
-
-```sh
-cd ../english
-python3.9 gender_recognition.py
-```
 
 ## Quote extractor
 Extract `quotes` from the database or from local files. Save the output locally, or update the database directly.
@@ -85,7 +78,6 @@ Just like the quote extractor, the entity gender annotator by default only works
 ```sh
 python3.9 entity_gender_annotator.py --db mediaTracker --readcol media
 ```
-Note that the gender recognition Flask server (from the previous step) must be started and running in production *before* the entity-gender annotator script can be run.
 
 ### Force update
 
