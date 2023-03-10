@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> None:
 app = FastAPI(
     title="Radar de Parité",
     description="RESTful API for the Radar de Parité public-facing dashboard",
-    version="1.1.2",
+    version="1.1.3",
     lifespan=lifespan,
 )
 

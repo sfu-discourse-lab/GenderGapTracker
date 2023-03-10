@@ -1,6 +1,15 @@
+from math import isnan
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
+
+
+def valid_percentage(cls, values):
+    """Avoid NaNs by setting them to 0.0"""
+    for key in ["perFemales", "perMales", "perUnknowns"]:
+        if isnan(values[key]):
+            values[key] = 0.0
+    return values
 
 
 class OutletStatsByDate(BaseModel):
@@ -17,6 +26,8 @@ class OutletStatsByDate(BaseModel):
     perUnknowns: float
     perArticles: float
 
+    # validators
+    _avoid_nans = root_validator(allow_reuse=True)(valid_percentage)
 
 class TotalStatsByDate(BaseModel):
     totalArticles: int
@@ -28,4 +39,7 @@ class TotalStatsByDate(BaseModel):
     perMales: float
     perUnknowns: float
     sources: List[OutletStatsByDate]
+
+    # validators
+    _avoid_nans = root_validator(allow_reuse=True)(valid_percentage)
 

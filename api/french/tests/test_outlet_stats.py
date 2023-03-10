@@ -15,8 +15,9 @@ def test_read_main():
 
 def test_get_info_by_date():
     with TestClient(app) as client:
-        begin = datetime.fromisoformat(LOWER_BOUND_START_DATE).date()
-        end = begin + timedelta(days=1)
+        # Choose a date range that is in the recent past
+        begin = datetime.today().date() - timedelta(days=7)
+        end = datetime.today().date() - timedelta(days=3)
         response = client.get(f"/{PREFIX}/info_by_date?begin={begin}&end={end}")
         assert response.status_code == 200
         body = response.json()
@@ -47,8 +48,9 @@ def test_get_info_by_date_invalid_date_range():
 
 def test_get_weekly_info():
     with TestClient(app) as client:
-        begin = datetime.fromisoformat(LOWER_BOUND_START_DATE).date()
-        end = begin + timedelta(days=1)
+        # Choose a date range that is in the recent past
+        begin = datetime.today().date() - timedelta(days=7)
+        end = datetime.today().date() - timedelta(days=3)
         response = client.get(f"/{PREFIX}/weekly_info?begin={begin}&end={end}")
         assert response.status_code == 200
         body = response.json().get("outlets")
@@ -60,3 +62,17 @@ def test_get_weekly_info():
                 assert week_id.get("perFemales") >= 0
                 assert week_id.get("perMales") >= 0
                 assert week_id.get("perUnknowns") >= 0
+
+
+def test_get_weekly_info_invalid_date_range():
+    with TestClient(app) as client:
+        lower_bound_date = datetime.fromisoformat(LOWER_BOUND_START_DATE).date()
+        past = lower_bound_date - timedelta(days=2)
+        response = client.get(f"/{PREFIX}/weekly_info?begin={past}&end={lower_bound_date}")
+        assert (
+            response.status_code == 416
+        ), "English articles start on 2018-10-01, so start date should be 2018-10-01 or later"
+        today = datetime.today().date()
+        future = today + timedelta(days=2)
+        response = client.get(f"/{PREFIX}/weekly_info?begin={today}&end={future}")
+        assert response.status_code == 416, "Cannot request stats for dates in the future"

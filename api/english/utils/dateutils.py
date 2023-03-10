@@ -23,5 +23,5 @@ def get_week_bound(year: int, week: int, day_of_week: int) -> str:
       - For end of week, set `day_of_week` to 6
     """
     w_bound = datetime.strptime(f"{year}-{week}-{day_of_week}", "%Y-%U-%w")
-    w_bound = w_bound.strftime("%Y-%m-%d")
-    return w_bound
+    w_bound_str = w_bound.strftime("%Y-%m-%d")
+    return w_bound_str
