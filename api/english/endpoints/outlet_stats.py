@@ -1,14 +1,18 @@
 import pandas as pd
+from fastapi import APIRouter, HTTPException, Query, Request
+
 import utils.dateutils as dateutils
 from db.mongoqueries import agg_total_by_week, agg_total_per_outlet
-from fastapi import APIRouter, HTTPException, Request, Query
 from schemas.stats_by_date import TotalStatsByDate
 from schemas.stats_weekly import TotalStatsByWeek
+from utils.logger import get_logger
 
 outlet_router = APIRouter()
 COLLECTION_NAME = "mediaDaily"
-LOWER_BOUND_START_DATE = "2018-10-01"
+LOWER_BOUND_START_DATE = "2018-09-29"  # Specify start date slightly earlier 2018-10-01 for pytest suite
 ID_MAPPING = {"Huffington Post": "HuffPost Canada"}
+
+logger = get_logger("g-tracker-fastapi-en")
 
 
 @outlet_router.get(
@@ -26,13 +30,44 @@ def expertwomen_info_by_date(
             status_code=416,
             detail=f"Date range error: Should be between {LOWER_BOUND_START_DATE} and tomorrow's date",
         )
-    begin = dateutils.convert_date(begin)
-    end = dateutils.convert_date(end)
+    result = _expertwomen_info_by_date(request, begin, end)
+    logger.info("Obtained info by date for English outlets between %s and %s" % (begin, end))
+    return result
 
-    query = agg_total_per_outlet(begin, end)
+
+@outlet_router.get(
+    "/weekly_info",
+    response_model=TotalStatsByWeek,
+    response_description="Get gender statistics per English outlet aggregated WEEKLY between two dates",
+)
+def expertwomen_weekly_info(
+    request: Request,
+    begin: str = Query(description="Start date in yyyy-mm-dd format"),
+    end: str = Query(description="End date in yyyy-mm-dd format"),
+) -> TotalStatsByWeek:
+    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUND_START_DATE):
+        raise HTTPException(
+            status_code=416,
+            detail=f"Date range error: Should be between {LOWER_BOUND_START_DATE} and tomorrow's date",
+        )
+    result = _expertwomen_weekly_info(request, begin, end)
+    logger.info("Obtained weekly info for English outlets between %s and %s" % (begin, end))
+    return result
+
+
+def _expertwomen_info_by_date(request: Request, begin: str, end: str) -> TotalStatsByDate:
+    """
+    Run aggregation query on MongoDB data to obtain total stats within a specified date range
+    """
+    begin_date = dateutils.convert_date(begin)
+    end_date = dateutils.convert_date(end)
+
+    query = agg_total_per_outlet(begin_date, end_date)
     response = request.app.connection[COLLECTION_NAME].aggregate(query)
     # Work with the data in pandas
     source_stats = list(response)
+    if not source_stats:
+        logger.error("No data found for date range %s to %s" % (begin, end))
     df = pd.DataFrame.from_dict(source_stats)
     df["totalGenders"] = df["totalFemales"] + df["totalMales"] + df["totalUnknowns"]
     # Replace outlet names if necessary
@@ -52,32 +87,20 @@ def expertwomen_info_by_date(
     return result
 
 
-@outlet_router.get(
-    "/weekly_info",
-    response_model=TotalStatsByWeek,
-    response_description="Get gender statistics per English outlet aggregated WEEKLY between two dates",
-)
-def expertwomen_weekly_info(
-    request: Request,
-    begin: str = Query(description="Start date in yyyy-mm-dd format"),
-    end: str = Query(description="End date in yyyy-mm-dd format"),
-) -> TotalStatsByWeek:
-    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUND_START_DATE):
-        raise HTTPException(
-            status_code=416,
-            detail=f"Date range error: Should be between {LOWER_BOUND_START_DATE} and tomorrow's date",
-        )
-    begin = dateutils.convert_date(begin)
-    end = dateutils.convert_date(end)
+def _expertwomen_weekly_info(request: Request, begin: str, end: str) -> TotalStatsByWeek:
+    """
+    Run aggregation query on MongoDB data to obtain weekly stats within a specified date range
+    """
+    begin_date = dateutils.convert_date(begin)
+    end_date = dateutils.convert_date(end)
 
-    query = agg_total_by_week(begin, end)
+    query = agg_total_by_week(begin_date, end_date)
     response = request.app.connection[COLLECTION_NAME].aggregate(query)
+    source_stats = list(response)
+    if not source_stats:
+        logger.error("No data found for date range %s to %s" % (begin, end))
     # Work with the data in pandas
-    df = (
-        pd.json_normalize(list(response), max_level=1)
-        .sort_values(by="_id.outlet")
-        .reset_index(drop=True)
-    )
+    df = pd.json_normalize(source_stats, max_level=1).sort_values(by="_id.outlet").reset_index(drop=True)
     df.rename(
         columns={
             "_id.outlet": "outlet",
@@ -91,14 +114,13 @@ def expertwomen_weekly_info(
     # Construct DataFrame and handle begin/end dates as datetimes for summing by week
     df["w_begin"] = df.apply(lambda row: dateutils.get_week_bound(row["year"], row["week"], 0), axis=1)
     df["w_end"] = df.apply(lambda row: dateutils.get_week_bound(row["year"], row["week"], 6), axis=1)
-    df["w_begin"], df["w_end"] = zip(*df.apply(lambda row: (pd.to_datetime(row["w_begin"]), pd.to_datetime(row["w_end"])), axis=1))
-    df = (
-        df.drop(columns=["week", "year"], axis=1)
-        .sort_values(by=["outlet", "w_begin"])
+    df["w_begin"], df["w_end"] = zip(
+        *df.apply(lambda row: (pd.to_datetime(row["w_begin"]), pd.to_datetime(row["w_end"])), axis=1)
     )
-    # In earlier versions, there was a bug due to which we returned weekly information for the same week begin date twice
+    df = df.drop(columns=["week", "year"], axis=1).sort_values(by=["outlet", "w_begin"])
+    # In earlier versions, there was a bug due to which we returned partial weekly information for the same week that spanned across years
     # This bug only occurred when the last week of one year spanned into the next year (partial week across a year boundary)
-    # To address this, we perform summation of stats by week to avoid duplicate week begin dates being passed to the front end
+    # To address this, we perform summation of stats by week in pandas to avoid partial stats per week being passed to the front end
     df = df.groupby(["outlet", "w_begin", "w_end"]).sum().reset_index()
     df["totalGenders"] = df["totalFemales"] + df["totalMales"] + df["totalUnknowns"]
     df["perFemales"] = df["totalFemales"] / df["totalGenders"]
@@ -116,5 +138,5 @@ def expertwomen_weekly_info(
         # Remove the outlet key from weekly_data
         [item.pop("outlet") for item in per_outlet_data]
         weekly_data[outlet] = per_outlet_data
-    output = {"outlets": weekly_data}
+    output = TotalStatsByWeek(outlets=weekly_data)
     return output

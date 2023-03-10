@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> None:
 app = FastAPI(
     title="Gender Gap Tracker",
     description="RESTful API for the Gender Gap Tracker public-facing dashboard",
-    version="1.1.2",
+    version="1.1.3",
     lifespan=lifespan,
 )
 
