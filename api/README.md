@@ -10,7 +10,12 @@ We have two APIs: one each serving the English and French dashboards (for the Ge
 
 ### Front end code
 
-The front end code base, for clearer separation of roles and responsibilities, is hosted elsewhere in private repos. Access to these repos is restricted, so please reach out to mtaboada@sfu.ca to get access to the code, if required.
+The front end code base, for clearer separation of roles and responsibilities, is hosted externally on GitLab.
+
+* English: [Kanopi_GGT/Gender Gap Tracker](https://gitlab.com/client-transfer-group/gender-gap-tracker)
+* French: [Kanopi_GGT/RDP](https://gitlab.com/client-transfer-group/rdp)
+
+Access to these repos is restricted, so please reach out to mtaboada@sfu.ca to get access to the code, if required.
 
 ## Setup
 
