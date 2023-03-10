@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -17,10 +18,22 @@ STATIC_PATH = "rdp"
 STATIC_HTML = "tracker.html"
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> None:
+    """Async context manager for MongoDB connection."""
+    app.mongodb_client = MongoClient(HOST, PORT, **MONGO_ARGS)
+    app.connection = app.mongodb_client[DB]
+    print("Successfully connected to MongoDB")
+    yield
+    app.mongodb_client.close()
+    print("Successfully closed MongoDB connection")
+
+
 app = FastAPI(
     title="Radar de Parité",
     description="RESTful API for the Radar de Parité public-facing dashboard",
-    version="1.0.0",
+    version="1.1.2",
+    lifespan=lifespan,
 )
 
 
@@ -29,18 +42,6 @@ async def root() -> HTMLResponse:
     with open(Path(f"{STATIC_PATH}") / STATIC_HTML, "r") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content, media_type="text/html")
-
-
-@app.on_event("startup")
-def startup_db_client() -> None:
-    app.mongodb_client = MongoClient(HOST, PORT, **MONGO_ARGS)
-    app.connection = app.mongodb_client[DB]
-    print("Successfully connected to MongoDB!")
-
-
-@app.on_event("shutdown")
-def shutdown_db_client() -> None:
-    app.mongodb_client.close()
 
 
 # Attach routes
