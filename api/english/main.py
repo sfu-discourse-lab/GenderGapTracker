@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -16,10 +17,23 @@ DB = config["DB_NAME"]
 STATIC_PATH = "gender-gap-tracker"
 STATIC_HTML = "tracker.html"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> None:
+    """Async context manager for MongoDB connection."""
+    app.mongodb_client = MongoClient(HOST, PORT, **MONGO_ARGS)
+    app.connection = app.mongodb_client[DB]
+    print("Successfully connected to MongoDB")
+    yield
+    app.mongodb_client.close()
+    print("Successfully closed MongoDB connection")
+
+
 app = FastAPI(
     title="Gender Gap Tracker",
     description="RESTful API for the Gender Gap Tracker public-facing dashboard",
-    version="1.0.0",
+    version="1.1.2",
+    lifespan=lifespan,
 )
 
 
@@ -28,18 +42,6 @@ async def root() -> HTMLResponse:
     with open(Path(f"{STATIC_PATH}") / STATIC_HTML, "r") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content, media_type="text/html")
-
-
-@app.on_event("startup")
-def startup_db_client() -> None:
-    app.mongodb_client = MongoClient(HOST, PORT, **MONGO_ARGS)
-    app.connection = app.mongodb_client[DB]
-    print("Successfully connected to MongoDB!")
-
-
-@app.on_event("shutdown")
-def shutdown_db_client() -> None:
-    app.mongodb_client.close()
 
 
 # Attach routes
@@ -53,4 +55,4 @@ app.mount("/", StaticFiles(directory=STATIC_PATH), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, loop="uvloop", reload=True)

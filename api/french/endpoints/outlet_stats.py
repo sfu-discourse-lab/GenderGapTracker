@@ -7,7 +7,7 @@ from schemas.stats_weekly import TotalStatsByWeek
 
 outlet_router = APIRouter()
 COLLECTION_NAME = "mediaDailyFrench"
-LOWER_BOUNT_START_DATE = "2021-10-01"
+LOWER_BOUND_START_DATE = "2021-10-01"
 ID_MAPPING = {
     "Journal De Montreal": "Le Journal de Montréal",
     "TVA News": "TVA Nouvelles",
@@ -25,10 +25,10 @@ def femmesExpertes_info_by_date(
     begin: str = Query(description="Start date in yyyy-mm-dd format"),
     end: str = Query(description="End date in yyyy-mm-dd format"),
 ) -> TotalStatsByDate:
-    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUNT_START_DATE):
+    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUND_START_DATE):
         raise HTTPException(
             status_code=416,
-            detail=f"Date range error: Should be between {LOWER_BOUNT_START_DATE} and tomorrow's date",
+            detail=f"Date range error: Should be between {LOWER_BOUND_START_DATE} and tomorrow's date",
         )
     begin = dateutils.convert_date(begin)
     end = dateutils.convert_date(end)
@@ -66,10 +66,10 @@ def femmesExpertes_weekly_info(
     begin: str = Query(description="Start date in yyyy-mm-dd format"),
     end: str = Query(description="End date in yyyy-mm-dd format"),
 ) -> TotalStatsByWeek:
-    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUNT_START_DATE):
+    if not dateutils.is_valid_date_range(begin, end, LOWER_BOUND_START_DATE):
         raise HTTPException(
             status_code=416,
-            detail=f"Date range error: Should be between {LOWER_BOUNT_START_DATE} and tomorrow's date",
+            detail=f"Date range error: Should be between {LOWER_BOUND_START_DATE} and tomorrow's date",
         )
     begin = dateutils.convert_date(begin)
     end = dateutils.convert_date(end)
