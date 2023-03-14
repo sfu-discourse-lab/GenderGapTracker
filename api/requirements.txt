@@ -2,7 +2,8 @@ requests>=2.28.2
 pandas>=1.5.3,<1.6.0
 pymongo<4.0.0
 pydantic<2.0.0
-fastapi>=0.93.0,<0.94.0
+httpx>=0.23.0, <0.24.0
+fastapi>=0.94.0,<0.95.0
 gunicorn>=20.1.0,<20.2.0
 uvicorn>=0.20.0,<0.21.0
 uvloop==0.17.0
