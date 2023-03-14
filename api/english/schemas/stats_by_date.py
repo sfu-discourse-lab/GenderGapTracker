@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel, Field, root_validator
 
 
-def valid_percentage(cls, values):
+def valid_percentage(_, values):
     """Avoid NaNs by setting them to 0.0"""
     for key in ["perFemales", "perMales", "perUnknowns"]:
         if isnan(values[key]):

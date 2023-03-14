@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -19,7 +20,7 @@ STATIC_HTML = "tracker.html"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Async context manager for MongoDB connection."""
     app.mongodb_client = MongoClient(HOST, PORT, **MONGO_ARGS)
     app.connection = app.mongodb_client[DB]
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI) -> None:
 app = FastAPI(
     title="Radar de Parité",
     description="RESTful API for the Radar de Parité public-facing dashboard",
-    version="1.1.3",
+    version="1.1.4",
     lifespan=lifespan,
 )
 
