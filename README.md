@@ -9,7 +9,7 @@ We present the code and framework for two bodies of work in this repo:
 
 The GGT and RdP are automated systems that measure men and women’s voices on mainstream Canadian news outlets in real time. We analyze articles from six English outlets (for the GGT) and six French outlets (for the RdP) in Canada using Natural Language Processing (NLP), and quantify the discrepancy in proportions of men and women quoted. Our larger goals through this project are to enhance awareness of women’s portrayal in public discourse through hard evidence, and to encourage news organizations to provide a more diverse set of voices in their reporting.
 
-The Gender Gap Tracker is a collaboration between [Informed Opinions](https://informedopinions.org/), a non-profit dedicated to amplifying women’s voices in media and Simon Fraser University, through the [Discourse Processing Lab](https://www.sfu.ca/discourse-lab.html) and the [Big Data Initiative](https://www.sfu.ca/big-data/big-data-sfu).
+The Gender Gap Tracker is a collaboration between [Informed Opinions](https://informedopinions.org/), a non-profit dedicated to amplifying the voices of women and gender-diverse people in media and Simon Fraser University, through the [Discourse Processing Lab](https://www.sfu.ca/discourse-lab.html) and the [Big Data Initiative](https://www.sfu.ca/big-data/big-data-sfu).
 
 ## Publications
 1. Asr FT, Mazraeh M, Lopes A, Gautam V, Gonzales J, Rao P, Taboada M. (2021) The Gender Gap Tracker: Using Natural Language Processing to measure gender bias in media. *PLoS ONE 16(1): e0245533*. https://doi.org/10.1371/journal.pone.0245533
