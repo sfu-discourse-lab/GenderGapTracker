@@ -4,7 +4,7 @@
 * [Dr. Fatemeh Torabi Asr](https://ftasr.github.io/): Postdoctoral Fellow and Project Manager
 * [Alexandre Lopes](https://github.com/aleaugustoplus): Data Scientist and Database Manager
 * [Mohammad Mazraeh](https://github.com/MohMaz): Software Developer and Machine Learning Engineer
-* [Vasundhara Gautam](https://github.com/vgautam): Computational Linguist
+* [Vagrant Gautam](https://dippedrusk.com/): Computational Linguist
 * [Junette Dianne Gonzales](http://www.sfu.ca/linguistics/events/2020/08/junette-gonzales-sda-minor.html): Language Data Annotator
 * [Lucas Chambers](https://www.sfu.ca/linguistics/events/2019/10/lucas-chambers.html): Linguist and Topic Label Annotator
 * [Jillian Anderson](https://github.com/jillianderson8): Big Data Developer
